@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: janvastu-ai-pipeline
+  labels:
+    app: ai-pipeline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-pipeline
+  template:
+    metadata:
+      labels:
+        app: ai-pipeline
+    spec:
+      containers:
+      - name: ai-pipeline
+        image: janvastu/ai-pipeline:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8003
+        env:
+        - name: CORE_BACKEND_URL
+          value: "http://backend-service.default.svc.cluster.local/api/v1"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-pipeline-service
+spec:
+  selector:
+    app: ai-pipeline
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8003
+  type: ClusterIP

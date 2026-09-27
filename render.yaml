@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: janvastu-api
+    env: docker
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: janvastu-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: janvastu-redis
+          property: connectionString
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: APP_ENV
+        value: production
+
+  - type: web
+    name: janvastu-web-app
+    env: static
+    buildCommand: cd frontend/web-app && npm install && npm run build
+    staticPublishPath: frontend/web-app/dist
+
+databases:
+  - name: janvastu-db
+    databaseName: janvastu
+    user: janvastu
+    plan: starter
+    ipAllowList: []
+    # Note: Requires manual enabling of PostGIS extension post-creation
+
+  - type: redis
+    name: janvastu-redis
+    plan: free
+    ipAllowList: []

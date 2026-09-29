@@ -1,14 +1,18 @@
-# Demo hosting template. Provision PostGIS, migrate with the owner account,
-# provision the restricted runtime role, and supply that role's DATABASE_URL.
+# Vercel hosts frontend/. Render hosts only the Docker API.
+# Use a dedicated Neon/PostGIS database and a private S3-compatible bucket.
 services:
   - type: web
     name: janvastu-api
     runtime: docker
+    plan: free
     dockerContext: backend
     dockerfilePath: backend/Dockerfile
+    dockerCommand: python -m app.hosted_start
     healthCheckPath: /api/v1/health
     envVars:
-      - key: DATABASE_URL
+      - key: PYTHONPATH
+        value: /app
+      - key: JANVASTU_OWNER_DATABASE_URL
         sync: false
       - key: SECRET_KEY
         generateValue: true
@@ -17,24 +21,18 @@ services:
       - key: MOCK_OTP_ENABLED
         value: "true"
       - key: CORS_ORIGINS
-        sync: false
+        value: https://janvastu.vercel.app
+      - key: FRONTEND_URL
+        value: https://janvastu.vercel.app
       - key: MINIO_ENDPOINT
         sync: false
       - key: MINIO_ACCESS_KEY
         sync: false
       - key: MINIO_SECRET_KEY
         sync: false
+      - key: MINIO_BUCKET
+        value: janvastu-media
       - key: MINIO_SECURE
         value: "true"
-  - type: web
-    name: janvastu-web
-    runtime: static
-    buildCommand: cd frontend && npm ci && npm run build
-    staticPublishPath: frontend/dist
-    envVars:
-      - key: VITE_API_BASE_URL
-        sync: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+      - key: MINIO_REGION
+        value: us-east-2

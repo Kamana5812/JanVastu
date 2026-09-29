@@ -1,8 +1,10 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from '../auth/AuthContext';
-import { LanguageProvider, useI18n } from '../i18n';
+import {Link, useNavigate} from 'react-router-dom';
+import {AuthProvider} from '../auth/AuthContext';
+import {useAuth} from '../auth/useAuth';
+import {LanguageProvider} from '../i18n';
+import {useI18n} from '../i18n/useI18n';
 import AppRoutes from './routes';
-import { roleHome } from '../features/auth/AuthPages';
+import {roleHome} from '../features/auth/roles';
 import '../design-system/tokens.css';
 import '../index.css';
 function Shell(){

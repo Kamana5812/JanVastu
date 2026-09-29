@@ -1,3 +1,5 @@
+> Historical copy. Current source: [RULES.md](RULES.md). Current implementation status: [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md).
+
 # JanVastu — Non-Negotiable Rules
 
 These rules override convenience or a coding agent's default instincts. If a change would violate one of these, stop and flag it rather than proceeding.

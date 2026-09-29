@@ -1,162 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Check, X, ShieldAlert, Users } from 'lucide-react';
-import { Card } from '../../design-system/Card';
-import { Button } from '../../design-system/Button';
-import { EmptyState } from '../../design-system/EmptyState';
-
-export default function AdminDashboard() {
-  const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('pending'); // pending, active, suspended
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      // Fetch users based on filter
-      const res = await fetch(`http://localhost:8000/api/v1/admin/users${filter ? `?status=${filter}` : ''}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (res.ok) {
-        setUsers(await res.json());
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, [filter]);
-
-  const handleUpdateStatus = async (userId, newStatus) => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:8000/api/v1/admin/users/${userId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-      if (res.ok) {
-        // Remove from list if we are currently filtering by something else, or just re-fetch
-        fetchUsers();
-      }
-    } catch (err) {
-      alert("Failed to update status");
-    }
-  };
-
-  return (
-    <div style={{ padding: 'var(--space-6)', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
-        <div>
-          <h1 style={{ fontSize: 'var(--text-display)' }}>Admin Dashboard</h1>
-          <p style={{ color: 'var(--color-text-muted)' }}>Manage user access and system configuration.</p>
-        </div>
-        <Button variant="outline" onClick={() => navigate('/admin/ai-ops')}>
-          AI Ops Center
-        </Button>
-      </div>
-
-      <div style={{ display: 'flex', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <Button variant={filter === 'pending' ? 'primary' : 'outline'} onClick={() => setFilter('pending')}>
-          Pending Requests
-        </Button>
-        <Button variant={filter === 'active' ? 'primary' : 'outline'} onClick={() => setFilter('active')}>
-          Active Users
-        </Button>
-        <Button variant={filter === 'suspended' ? 'primary' : 'outline'} onClick={() => setFilter('suspended')}>
-          Suspended
-        </Button>
-        <Button variant={filter === '' ? 'primary' : 'outline'} onClick={() => setFilter('')}>
-          All Users
-        </Button>
-      </div>
-
-      <Card style={{ padding: 'var(--space-0)' }}>
-        {loading ? (
-          <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>Loading users...</div>
-        ) : users.length === 0 ? (
-          <div style={{ padding: 'var(--space-8)' }}>
-            <EmptyState 
-              title="No users found"
-              description={`There are no users with status: ${filter || 'any'}.`}
-              icon={<Users size={48} color="var(--color-text-muted)" />}
-            />
-          </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ backgroundColor: 'var(--color-bg)', borderBottom: '2px solid var(--border-color)', textAlign: 'left' }}>
-                  <th style={{ padding: 'var(--space-4)' }}>Name</th>
-                  <th style={{ padding: 'var(--space-4)' }}>Role</th>
-                  <th style={{ padding: 'var(--space-4)' }}>Details</th>
-                  <th style={{ padding: 'var(--space-4)' }}>Status</th>
-                  <th style={{ padding: 'var(--space-4)' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(user => (
-                  <tr key={user.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: 'var(--space-4)' }}>
-                      <strong>{user.full_name}</strong>
-                      <span style={{ display: 'block', fontSize: 'var(--text-caption)', color: 'var(--color-text-muted)' }}>{user.email}</span>
-                    </td>
-                    <td style={{ padding: 'var(--space-4)' }}>
-                      <span style={{ textTransform: 'capitalize' }}>{user.role.replace('_', ' ')}</span>
-                    </td>
-                    <td style={{ padding: 'var(--space-4)' }}>
-                      {user.department && <span style={{ display: 'block', fontSize: 'var(--text-caption)' }}>Dept: {user.department}</span>}
-                      {user.jurisdiction && <span style={{ display: 'block', fontSize: 'var(--text-caption)' }}>Area: {user.jurisdiction}</span>}
-                    </td>
-                    <td style={{ padding: 'var(--space-4)' }}>
-                      <span style={{
-                        padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 600,
-                        backgroundColor: user.status === 'active' ? 'var(--color-success)' : user.status === 'pending' ? 'var(--color-warning)' : 'var(--color-critical)',
-                        color: '#fff'
-                      }}>
-                        {user.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: 'var(--space-4)' }}>
-                      {user.status === 'pending' && (
-                        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                          <Button variant="primary" style={{ backgroundColor: 'var(--color-success)', borderColor: 'var(--color-success)', padding: '4px 8px' }} onClick={() => handleUpdateStatus(user.id, 'active')}>
-                            Approve
-                          </Button>
-                          <Button variant="outline" style={{ padding: '4px 8px' }} onClick={() => handleUpdateStatus(user.id, 'rejected')}>
-                            Reject
-                          </Button>
-                        </div>
-                      )}
-                      {user.status === 'active' && user.role !== 'admin' && (
-                         <Button variant="outline" style={{ color: 'var(--color-critical)', borderColor: 'var(--color-critical)', padding: '4px 8px' }} onClick={() => handleUpdateStatus(user.id, 'suspended')}>
-                           Suspend
-                         </Button>
-                      )}
-                      {user.status === 'suspended' && (
-                         <Button variant="outline" style={{ padding: '4px 8px' }} onClick={() => handleUpdateStatus(user.id, 'active')}>
-                           Restore
-                         </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-    </div>
-  );
+import {useState} from 'react';
+import {Link} from 'react-router-dom';
+import {useI18n} from '../../i18n/useI18n';
+import {api} from '../../api/client';
+import {State, Empty, Badge, Notice, DateText, Field} from '../../components/UI';
+import {useResource} from '../../components/useResource';
+export function DataTable({rows}){
+ const {t}=useI18n();if(!rows.length)return <Empty/>;
+ const keys=Object.keys(rows[0]).filter(k=>!['id','user_id'].includes(k));
+ return <div className="table-wrap"><table><thead><tr>{keys.map(k=><th scope="col" key={k}>{t(k)}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={r.id||i}>{keys.map(k=><td key={k}>{r[k]==null?t('Information Not Available'):Array.isArray(r[k])?r[k].map(t).join(', '):k.endsWith('_at')||k==='timestamp'?<DateText value={r[k]}/>:t(String(r[k]))}</td>)}</tr>)}</tbody></table></div>;
+}
+export function AuditPage(){
+ const {t}=useI18n(),[action,setAction]=useState(''),[filter,setFilter]=useState(''),r=useResource('/admin/audit-logs?'+new URLSearchParams({action:filter}));
+ return <section><h1>{t('Audit logs')}</h1><p>{t('Read-only history of account and reporting actions.')}</p><Link to="/admin/ai-ops">{t('AI and data operations')}</Link><form className="filter-bar" onSubmit={e=>{e.preventDefault();setFilter(action);}}><Field label="Action filter" value={action} onChange={e=>setAction(e.target.value)}/><button>{t('Filter')}</button></form><State resource={r}>{rows=><DataTable rows={rows}/>}</State></section>;
+}
+const sections=['overview','users','roles','requests','moderation','data-governance','consent','audit-logs','integrations','health','reports'];
+export default function AdminDashboard(){
+ const {t}=useI18n(),[section,setSection]=useState('overview'),[status,setStatus]=useState('pending_approval'),[error,setError]=useState(''),[busy,setBusy]=useState(false),[note,setNote]=useState('');
+ const path=section==='moderation'?'requests?review=true':section==='users'?'users?'+new URLSearchParams(status?{status}:{}):section;
+ const r=useResource('/admin/'+path),applications=useResource(section==='users'?'/admin/access-requests':null);
+ async function change(path,body){setBusy(true);setError('');try{await api('/admin/'+path,{method:'PATCH',body});r.reload();applications.reload();}catch(e){setError(e.message);}finally{setBusy(false);}}
+ return <section><header className="page-heading"><h1>{t('Administration')}</h1><Link to="/admin/ai-ops">{t('AI and data operations')}</Link></header><div className="split"><nav className="sidebar" aria-label={t('Administration')}>{sections.map(s=><button key={s} className={section===s?'':'secondary'} onClick={()=>setSection(s)} aria-current={section===s?'page':undefined}>{t(s==='health'?'System health':s)}</button>)}</nav><div className="stack"><h2>{t(section==='health'?'System health':section)}</h2><Notice message={error} error/>
+ {section==='users'&&<Field label="Status" value={status} onChange={e=>setStatus(e.target.value)}>{['pending_approval','active','suspended','rejected',''].map(s=><option key={s} value={s}>{t(s||'All')}</option>)}</Field>}
+ {section==='moderation'&&<Field label="Private review note" value={note} minLength={3} maxLength={1000} onChange={e=>setNote(e.target.value)}/>}
+ <State resource={r}>{data=>section==='users'?<>{data.length?data.map(u=><article className="card" key={u.id}><h3>{u.name}</h3><p>{t(u.role)} · {u.state} · {u.district}</p><Badge>{u.status}</Badge>{u.role!=='admin'&&<div className="actions">{(u.status==='pending_approval'?['active','rejected']:u.status==='active'?['suspended']:u.status==='suspended'?['active']:[]).map(s=><button key={s} disabled={busy} onClick={()=>change('users/'+u.id+'/status',{status:s})}>{t(s==='active'?'Approve or restore':s==='rejected'?'Reject':'Suspend')}</button>)}</div>}</article>):<Empty/>}<h3>{t('Access applications')}</h3><State resource={applications}>{rows=><DataTable rows={rows}/>}</State></>:section==='moderation'?data.length?data.map(n=><article className="card" key={n.id}><h3>{t(n.category)} · {n.district}</h3><Link to={"/admin/requests/"+n.id}>{t("Review evidence")}</Link><Badge>{n.moderation_reason||'Requires Review'}</Badge><div className="actions">{['clear_review','reject'].map(action=><button key={action} disabled={busy||note.trim().length<3} onClick={()=>change('requests/'+n.id,{action,note})}>{t(action)}</button>)}</div></article>):<Empty/>:section==='consent'?data.length?data.map(c=><article className="card" key={c.id}><p>{t(c.purpose)} · <Badge>{c.status}</Badge> · <DateText value={c.recorded_at}/></p><small>{c.id}</small>{c.status==='active'&&<button disabled={busy} onClick={()=>change('consent/'+c.id,{status:'withdrawn'})}>{t('Withdraw consent')}</button>}</article>):<Empty/>:section==='requests'?<>{data.map(n=><article className="card" key={n.id}><p>{t(n.category)} · {n.district} · {t(n.status)}</p><Link to={"/admin/requests/"+n.id}>{t("Review evidence")}</Link></article>)}</>:Array.isArray(data)?<DataTable rows={data}/>:<div className="grid two">{Object.entries(data).map(([key,value])=><article className="card" key={key}><h3>{t(key)}</h3>{Array.isArray(value)?<DataTable rows={value}/>:<p>{typeof value==='number'?value:t(value)}</p>}</article>)}</div>}</State></div></div></section>;
 }

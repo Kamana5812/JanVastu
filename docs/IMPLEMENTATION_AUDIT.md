@@ -1,3 +1,5 @@
+> Historical audit. Findings below describe the original code on 27 September 2026. Remediation and current checks are tracked in [verification](VERIFICATION.md) and [implementation status](../IMPLEMENTATION_SUMMARY.md).
+
 # JanVastu documentation and implementation audit
 
 Reviewed: 27 September 2026.

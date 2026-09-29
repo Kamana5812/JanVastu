@@ -91,7 +91,7 @@ def register(data, role, db):
 
 @router.get("/options")
 def options():
-    return {"demo_otp": settings.MOCK_OTP_ENABLED, "google_available": False}
+    return {"demo_otp": settings.MOCK_OTP_ENABLED, "google_available": bool(settings.GOOGLE_CLIENT_ID), "google_client_id": settings.GOOGLE_CLIENT_ID or None}
 
 @router.post("/signup/citizen")
 def citizen(data: Signup, request: Request, db: Session=Depends(get_db)):
@@ -185,3 +185,63 @@ def edit_me(data: ProfileUpdate, user=Depends(get_current_user), db: Session=Dep
     audit(db, user, "profile.updated", user.id)
     db.commit()
     return profile(user)
+
+
+from pydantic import BaseModel,Field
+class GoogleCredential(BaseModel):
+    credential:str=Field(min_length=20,max_length=10000)
+    nonce:str=Field(min_length=20,max_length=100)
+
+@router.post("/google/challenge")
+def google_challenge(request:Request,db:Session=Depends(get_db)):
+    if not settings.GOOGLE_CLIENT_ID:raise HTTPException(503,"google_unavailable")
+    limit(db,request,"google")
+    row=AuthChallenge(id=uid(),purpose="google",expires_at=now()+timedelta(minutes=5))
+    db.add(row);db.commit()
+    return {"nonce":row.id}
+
+@router.post("/google")
+def google_login(data:GoogleCredential,request:Request,db:Session=Depends(get_db)):
+    if not settings.GOOGLE_CLIENT_ID:raise HTTPException(503,"google_unavailable")
+    limit(db,request,"google_verify")
+    from app.services.google_identity import verify
+    try:claims=verify(data.credential)
+    except Exception:raise HTTPException(401,"invalid_google_identity")
+    row=db.scalar(select(AuthChallenge).where(AuthChallenge.id==data.nonce).with_for_update())
+    if not row or row.purpose!="google" or row.used_at or row.expires_at<=now() or claims.get("nonce")!=data.nonce:
+        raise HTTPException(401,"invalid_challenge")
+    row.used_at=now();db.commit()
+    user=db.query(User).filter_by(email=claims["email"].lower()).first()
+    if not user:raise HTTPException(403,"register_first")
+    if user.status!=UserStatus.active:raise HTTPException(403,"account_not_active")
+    if user.role not in (UserRole.citizen,UserRole.volunteer):return challenge(db,user,"login")
+    return tokens(db,user)
+
+
+import secrets
+class OTPRegistration(Signup):
+    password:str=Field(default_factory=lambda:secrets.token_urlsafe(32),min_length=8,max_length=72)
+
+@router.post("/signup/otp/request")
+def signup_otp(data:OTPRegistration,request:Request,db:Session=Depends(get_db)):
+    if not settings.MOCK_OTP_ENABLED:raise HTTPException(503,"otp_delivery_not_configured")
+    if not data.mobile:raise HTTPException(422,"identifier_required")
+    limit(db,request,"signup")
+    db.query(AuthChallenge).filter(AuthChallenge.purpose=="signup",AuthChallenge.expires_at<=now()).delete(synchronize_session=False)
+    row=AuthChallenge(purpose="signup",expires_at=now()+timedelta(minutes=5),payload=data.model_dump(mode="json",exclude={"password"}))
+    db.add(row);db.commit()
+    return {"challenge_id":row.id,"requires_otp":True,"mode":"demo","expires_in":300}
+
+@router.post("/signup/otp/verify")
+def signup_verify(data:OTPVerify,request:Request,db:Session=Depends(get_db)):
+    limit(db,request,"otp_verify")
+    row=db.scalar(select(AuthChallenge).where(AuthChallenge.id==data.challenge_id).with_for_update())
+    if not settings.MOCK_OTP_ENABLED or not row or row.purpose!="signup" or row.used_at or row.expires_at<=now() or row.attempts>=5:
+        raise HTTPException(400,"invalid_challenge")
+    row.attempts+=1
+    if data.code!="123456":
+        db.commit();raise HTTPException(400,"invalid_otp")
+    signup=Signup(**row.payload,password=secrets.token_urlsafe(32))
+    row.used_at=now();row.payload=None
+    user=register(signup,UserRole.citizen,db)
+    return tokens(db,user)

@@ -1,3 +1,5 @@
+> Historical copy. Current source: [PRD.md](PRD.md). Current implementation status: [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md).
+
 # JanVastu — Product Requirements Document (PRD)
 **People's Infrastructure Bridge · "Har Awaaz, Har Vastu, Har Vikas"**
 Scope of this PRD: the **full-stack application** — a React + Vite frontend and a real FastAPI + PostgreSQL/PostGIS backend — covering landing → role selection → auth → six role experiences. This is the working spec for implementation — read alongside `ARCHITECTURE.md`, `DESIGN.md`, `RULES.md`, `PHASES.md`, and `MEMORY.md`.

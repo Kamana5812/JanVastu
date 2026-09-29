@@ -45,7 +45,7 @@ def test_public_admin_request_rejected(client):
 def test_audit_immutable(client, account, db):
     user, _ = account()
     client.post("/api/v1/auth/login", json={"identifier":user.email,"password":"Test-password-27"})
-    with pytest.raises(Exception, match="append-only"):
+    with pytest.raises(Exception, match="append-only|permission denied"):
         db.execute(text("UPDATE audit_logs SET result='changed'"))
         db.commit()
     db.rollback()

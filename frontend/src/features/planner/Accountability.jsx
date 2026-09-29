@@ -1,83 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '../../design-system/Card';
-import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
-
-export default function Accountability() {
-  const [stats, setStats] = useState(null);
-
-  useEffect(() => {
-    // For accountability portal, it's public. Using public endpoint or bypassing auth if configured.
-    // In hackathon mock, we'll just fetch with no token and hope it doesn't 401, or mock it if it does.
-    const fetchPublicStats = async () => {
-      try {
-        const token = localStorage.getItem('token'); // Use token if they happen to be logged in
-        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        const res = await fetch('http://localhost:8000/api/v1/planner/stats', { headers });
-        if (res.ok) {
-          setStats(await res.json());
-        } else {
-          // Mock data if 401
-          setStats({
-            total: 1542,
-            by_status: { reported: 500, verified: 400, planned: 300, resolved: 342 }
-          });
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchPublicStats();
-  }, []);
-
-  return (
-    <div style={{ padding: 'var(--space-6)', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
-        <h1 style={{ fontSize: 'var(--text-display)' }}>Public Accountability Portal</h1>
-        <p style={{ color: 'var(--color-text-muted)', maxWidth: '600px', margin: '0 auto' }}>
-          Transparent tracking of digital public good requests across the country. Track how quickly your local government responds to verified citizen needs.
-        </p>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-8)' }}>
-        <Card style={{ padding: 'var(--space-5)', textAlign: 'center' }}>
-          <AlertCircle size={32} color="var(--color-warning)" style={{ margin: '0 auto var(--space-3)' }} />
-          <h3 style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)' }}>Reported Needs</h3>
-          <span style={{ fontSize: '48px', fontWeight: 800, color: 'var(--color-warning)' }}>
-            {stats?.by_status?.reported || 0}
-          </span>
-        </Card>
-        
-        <Card style={{ padding: 'var(--space-5)', textAlign: 'center' }}>
-          <CheckCircle size={32} color="var(--color-primary)" style={{ margin: '0 auto var(--space-3)' }} />
-          <h3 style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)' }}>Verified by Volunteers</h3>
-          <span style={{ fontSize: '48px', fontWeight: 800, color: 'var(--color-primary)' }}>
-            {stats?.by_status?.verified || 0}
-          </span>
-        </Card>
-
-        <Card style={{ padding: 'var(--space-5)', textAlign: 'center' }}>
-          <Clock size={32} color="var(--color-accent)" style={{ margin: '0 auto var(--space-3)' }} />
-          <h3 style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)' }}>Planned / Funded</h3>
-          <span style={{ fontSize: '48px', fontWeight: 800, color: 'var(--color-accent)' }}>
-            {stats?.by_status?.planned || 0}
-          </span>
-        </Card>
-
-        <Card style={{ padding: 'var(--space-5)', textAlign: 'center' }}>
-          <CheckCircle size={32} color="var(--color-success)" style={{ margin: '0 auto var(--space-3)' }} />
-          <h3 style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)' }}>Resolved</h3>
-          <span style={{ fontSize: '48px', fontWeight: 800, color: 'var(--color-success)' }}>
-            {stats?.by_status?.resolved || 0}
-          </span>
-        </Card>
-      </div>
-
-      <Card style={{ padding: 'var(--space-6)' }}>
-        <h2 style={{ fontSize: 'var(--text-h2)', marginBottom: 'var(--space-4)' }}>Recent Success Stories</h2>
-        <p style={{ color: 'var(--color-text-muted)' }}>
-          (Map/List of recently resolved infrastructure issues with before/after evidence photos would go here in the production version).
-        </p>
-      </Card>
-    </div>
-  );
+import {useState} from 'react';
+import {Link, useParams, useSearchParams} from 'react-router-dom';
+import {useI18n} from '../../i18n/useI18n';
+import {State, Empty, Badge, Field, DateText, Notice} from '../../components/UI';
+import {useResource} from '../../components/useResource';
+import {downloadUrl} from '../../api/client';
+import CivicMap from '../../components/CivicMap';
+import DatasetRecord from './DatasetRecord';
+export default function Accountability(){
+ const [params]=useSearchParams(),{t}=useI18n(),{id}=useParams(),[q,setQ]=useState(params.get('district')||''),[query,setQuery]=useState(params.get('district')||''),[geo,setGeo]=useState(null),[error,setError]=useState('');
+ const resource=useResource(id?'/projects/'+id:'/projects/search?'+new URLSearchParams({q:query,...geo}));
+ async function nearby(){try{const p=await new Promise((ok,no)=>navigator.geolocation.getCurrentPosition(ok,no,{timeout:15000}));setGeo({lat:p.coords.latitude,lng:p.coords.longitude});setError('');}catch{setError('Location access failed. Search by district instead.');}}
+ return <section><h1>{t('Public accountability')}</h1><p>{t('Explore project records, sources and timelines.')}</p><Notice message={error} error/>
+ {!id&&<><form className="filter-bar" onSubmit={e=>{e.preventDefault();setQuery(q);}}><Field label="Search projects or districts" value={q} onChange={e=>setQ(e.target.value)}/><button>{t('Search')}</button><button type="button" className="secondary" onClick={nearby}>{t('Nearby projects')}</button>{geo&&<button type="button" onClick={()=>setGeo(null)}>{t('Clear location filter')}</button>}</form></>}
+ <State resource={resource}>{data=>id?<><Link to="/accountability">{t('All projects')}</Link><h2>{data.name}</h2>{data.is_sample&&<Notice message="Synthetic sample project. Names, organizations and figures are fictional."/>}
+ <DatasetRecord record={data.dataset_record}/><div className="grid three">{Object.entries(data.fields).map(([key,field])=><article key={key} className="card"><h3>{t(key)}</h3><p>{field.value===null?t('Information Not Available'):key.includes('start')||key.includes('completion')?<DateText value={field.value}/>:typeof field.value==='number'?field.value.toLocaleString():t(field.value)}</p><Badge>{field.source_badge}</Badge></article>)}</div>
+ <section className="card"><h2>{t('Project timeline')}</h2>{data.timeline.length?<ol>{data.timeline.map((e,i)=><li key={i}>{t(e.stage)} · <DateText value={e.occurred_at}/> <Badge>{e.source_badge}</Badge></li>)}</ol>:<Empty/>}</section>
+ <h2>{t('Citizen evidence')}</h2>{data.evidence.length?data.evidence.map(e=><figure key={e.id}><img className="evidence" src={downloadUrl('/projects/evidence/'+e.id+'/media')} alt={t('Reviewed citizen evidence')}/><figcaption><Badge>{e.source_badge}</Badge></figcaption></figure>):<p>{t('No reviewed public evidence is available. Submitted media stays private.')}</p>}
+ <Link className="button" to={'/citizen/report-need?project='+data.id}>{t('Report an issue')}</Link></>:data.length?<>{data.some(p=>p.has_dataset)&&<Notice message="Records without confirmed coordinates are listed below and excluded from the map and nearby search."/>}<CivicMap points={data}/><div className="grid three">{data.map(p=><article className="card" key={p.id}>{p.is_sample&&<Badge>Synthetic Sample</Badge>}{p.has_dataset&&<Badge>User supplied — unverified</Badge>}<h2>{p.name}</h2><p>{p.district||t(p.has_dataset?'Bhubaneswar region (supplied dataset)':'Information Not Available')} · {t(p.category)}</p><Badge>{p.status}</Badge><p>{t('Progress')}: {p.progress===null?t('Information Not Available'):p.progress+'%'}</p><Link to={'/accountability/'+p.id}>{t('View project')}</Link></article>)}</div></>:<Empty/>}</State></section>;
 }

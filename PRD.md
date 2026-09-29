@@ -1,3 +1,5 @@
+> Implementation update, 29 September 2026: current route names and storage details are in ARCHITECTURE.md; executed checks are in docs/VERIFICATION.md. The user additionally requested the supplied infrastructure dataset, covered in docs/DATASETS.md. Synthetic records and unverified source observations are labeled separately. Offline volunteer drafts use IndexedDB. System health uses actual database/storage checks. Public evidence requires a separately redacted image and review; automated anonymization remains out of scope.
+
 # JanVastu — Product Requirements Document (PRD)
 **People's Infrastructure Bridge · "Har Awaaz, Har Vastu, Har Vikas"**
 Scope of this PRD: the **full-stack application** — a React + Vite frontend and a real FastAPI + PostgreSQL/PostGIS backend — covering landing → role selection → auth → six role experiences. This is the working spec for implementation — read alongside `ARCHITECTURE.md`, `DESIGN.md`, `RULES.md`, `PHASES.md`, and `MEMORY.md`.

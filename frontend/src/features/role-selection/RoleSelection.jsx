@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
-import { User, Users, Building2, ShieldCheck } from 'lucide-react';
-import { useI18n } from '../../i18n';
+import {Link} from 'react-router-dom';
+import {User, Users, Building2, ShieldCheck} from 'lucide-react';
+import {useI18n} from '../../i18n/useI18n';
 export default function RoleSelection(){
  const {t}=useI18n();
  return <section><header className="page-heading"><h1>{t('Join JanVastu')}</h1><p>{t('Choose how you want to participate.')}</p></header><div className="grid four">

@@ -29,6 +29,7 @@ class Need(Base):
     id=Column(String,primary_key=True,default=uid)
     category=Column(Enum(NeedCategory),nullable=False)
     description=Column(String,nullable=False)
+    is_sample=Column(Boolean,nullable=False,default=False)
     affected_people=Column(Integer)
     location=Column(Geometry("POINT",srid=4326),nullable=False)
     address=Column(String)
@@ -62,6 +63,7 @@ class Evidence(Base):
     content_type=Column(String)
     size_bytes=Column(Integer)
     anonymized=Column(Boolean,default=False,nullable=False)
+    public_file_url=Column(String)
     need=relationship("Need",back_populates="evidence")
 
 class NeedEvent(Base):

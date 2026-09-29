@@ -1,115 +1,61 @@
-# Current implementation status
+# JanVastu
 
-This repository is a work in progress. The documentation audit identified incomplete features; fixes are underway.
+JanVastu connects citizen requests with volunteer verification, infrastructure planning and public project records.
 
-Verified on 27 September 2026:
-- Frontend production build passes.
-- Six foundation/authentication tests and three citizen-reporting tests pass against an isolated PostGIS database.
-- Volunteer offline queue and verification changes are implemented; their test import was corrected and verification remains pending.
+## Run the local demo
 
-Planning analytics, public project accountability, governance screens, full translations, deployment reconciliation, and the remaining audit findings are not yet complete. See [the audit](docs/IMPLEMENTATION_AUDIT.md) and [current work notes](MEMORY.md).
+Requirements: Docker Desktop with Linux containers and Docker Compose.
 
-The earlier overview below describes the product vision. Its feature checkmarks are not a verified completion checklist.
-
----
-
-# JanVastu (जनवास्तु)
-### People's Infrastructure Bridge — A Digital Public Good for India
-
-> **"Har Awaaz, Har Vastu, Har Vikas"**
-> (Every Voice, Every Structure, Every Development)
-
----
-
-## 🌟 What is JanVastu?
-
-JanVastu is a scalable, multilingual, AI-powered Digital Public Good (DPG) that aggregates citizen development requests across India — via voice, text, photos, videos, and messaging apps — and aligns them with national demographic data, infrastructure indices, and public investment plans.
-
-It surfaces **demand hotspots**, recommends **high-priority development projects** to policymakers, and provides **end-to-end accountability** by exposing project details: who built it, who manages it, how much it cost, and its timeline.
-
----
-
-## 🎯 The Problem
-
-- Citizen development requests live in **fragmented systems** (MPLADS, e-District, CPGRAMS, CSC)
-- National infrastructure planning (NIP, ₹160+ trillion pipeline) is **top-down**
-- No system correlates **citizen demand** with **infrastructure supply**
-- Citizens have **no visibility** into project costs, contractors, or responsible officials
-- **Multilingual, low-literacy populations** are systematically excluded
-
----
-
-## 💡 The Solution
-
-JanVastu operates as a **three-layer platform**:
-
-1. **Collection Layer** — Voice-first, multilingual, offline-capable feedback via IVR, WhatsApp, mobile app, CSC terminals, and volunteer mode
-2. **AI Processing Layer** — ASR, intent classification, NER, image/video classification, geo-coding, and demand intensity scoring
-3. **Decision Support Layer** — Demand-supply gap analysis, priority project recommendations, contractor performance dashboards, and asset health monitoring
-
-Plus an **Accountability Module** that exposes project details (contractor, cost, timeline, responsible officials) alongside citizen media evidence.
-
----
-
-## 🏗️ Core Features
-
-### Citizen-Facing
-- ✅ Voice input in 22+ Indian languages (IndicConformer, Vak)
-- ✅ Text input via WhatsApp/SMS chatbot
-- ✅ Photo & video upload with geo-tagging
-- ✅ Offline capture and sync (volunteer mode)
-- ✅ IVR for non-smartphone users
-- ✅ CSC terminal assistance
-- ✅ Real-time complaint tracking
-- ✅ Project accountability lookup
-
-### Policymaker-Facing
-- ✅ Demand hotspot heatmaps
-- ✅ Demand-Supply Gap Ratio analysis
-- ✅ Priority project recommendations (explainable AI)
-- ✅ Contractor performance dashboards
-- ✅ Agency responsiveness tracking
-- ✅ Integration with NIP, MPLADS, PMGSY pipelines
-
-### Platform-Level
-- ✅ DPDP Act 2023 compliant
-- ✅ DPG Standard aligned (9 indicators)
-- ✅ DEPA/Account Aggregator consent integration
-- ✅ Open-source, on-premise deployable
-- ✅ Federated data architecture (PFMS, IIG, eSAKSHI)
-- ✅ Audit trail & explainability
-
----
-
-## 🧩 Tech Stack (Reference)
-
-| Layer | Technology |
-|-------|-----------|
-| ASR | IndicConformer, Vak (open-weight) |
-| NLP | IndicBERT, MuRIL, Bhasha-Abhijnaanam |
-| Vision | YOLOv8 (custom-trained on infrastructure defects) |
-| Backend | Python (FastAPI), PostgreSQL + PostGIS |
-| Frontend | React Native (mobile), React (web) |
-| AI Orchestration | LangChain, custom pipelines |
-| Data Integration | Apache Kafka, Debezium, REST/GraphQL |
-| Consent | DEPA / Account Aggregator framework |
-| Deployment | Kubernetes, on-premise or MeghRaj cloud |
-
----
-
-## 📁 Repository Structure
-
-```
-janvastu/
-├── docker-compose.yml
-├── backend/                # Core API (FastAPI + PostgreSQL/PostGIS)
-├── ai-pipeline/            # ASR, NLU, vision, decision pipelines
-├── decision-support/       # Gap ratio, demand intensity, recommender
-├── channels/               # IVR, WhatsApp bot, mobile app, CSC terminal
-├── frontend/               # Policymaker dashboard, public portal
-├── integrations/           # PFMS, IIG, eSAKSHI, CPGRAMS, DEPA clients
-├── infra/                  # Terraform, Helm, Kubernetes manifests
-└── docs/                   # README, PRD, rules, architecture, consent flow
+```sh
+docker compose up --build -d
 ```
 
-See `docs/PRD.md`, `docs/rules.md`, `docs/architecture.md`, and `docs/consent-flow.md` for full specifications.
+Open http://localhost:8080. The API documentation is at http://localhost:8000/docs.
+
+Compose runs migrations, creates a restricted API database role, and inserts **synthetic** planning contexts, requests and project records. The seed also imports 16 supplied infrastructure records with unverified claim labels and source references. Existing records are preserved. Local defaults are for demonstrations only.
+
+Create an administrator using your own credentials:
+
+```sh
+docker compose exec -e ADMIN_EMAIL=you@example.org -e ADMIN_PASSWORD='<your-password>' api python -m app.db.bootstrap
+```
+
+Use at least 12 password characters. Open `/admin/login` directly; admin registration is not public. The demo verification code is **123456**. No SMS or email is sent.
+
+Citizens register directly. Volunteers, officials and auditors apply and need administrator approval. Never use personal or sensitive data with demonstration OTP.
+
+## Implemented workflows
+
+- Password login, demo OTP login/registration/reset, refresh rotation, suspension and role checks.
+- Consent-aware reporting, GPS and reverse geocoding, multilingual keyword suggestions, photos/audio/video, own-request tracking and notifications.
+- Volunteer capture, browser offline drafts, retry-safe sync, and independent district verification.
+- District, state and national dashboards with geographic restrictions, filters, maps, measured counts and explained gap calculations.
+- Public project search, source labels, timelines, missing information and linked issue reports.
+- Administrator approval, moderation, consent, audit, integration status, health, reports and manually reviewed public image derivatives.
+- Auditor access to read-only logs and measured pipeline activity.
+- English, Hindi and Odia interface dictionaries.
+- Account erasure with retained anonymous operational history and immutable audit records.
+
+Google sign-in is implemented for existing accounts. Enabling it requires your own Google client ID and authorized frontend origin. Identity verification follows Google's [server-side token verification](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token). It is disabled when unconfigured.
+
+## Data and privacy
+
+Sample requests and projects are explicitly labeled. Costs, agencies, contractors and planning indices in sample records are fictional. Gap calculations carry the label “JanVastu Analytical Indicator — not an official government metric.”
+
+Original media stays private. An administrator must upload a separately redacted image and attest to review before it can appear on a public project. Public access also requires active account and report consent. Automatic face/name anonymization is **not** connected.
+
+See [dataset coverage and source conflicts](docs/DATASETS.md).
+
+## Boundaries
+
+This is the documented hackathon build. Government integrations, live WhatsApp/IVR/SMS, production OTP delivery, speech transcription, production vision/NLP models, 22-language voice, Kafka and Kubernetes operations remain future work. Integration cards report planned or not connected. No synthetic accuracy or throughput is displayed.
+
+This repository is not a production-readiness or legal-compliance certification.
+
+## Development and verification
+
+See [deployment guide](DEPLOYMENT_GUIDE.md), [implementation status](IMPLEMENTATION_SUMMARY.md), and [verification report](docs/VERIFICATION.md).
+
+Canonical requirements: [PRD](PRD.md), [architecture](ARCHITECTURE.md), [design](DESIGN.md), [rules](RULES.md), [phases](PHASES.md). Numbered copies and older documents under `docs/` preserve earlier proposals.
+
+License: Apache 2.0.

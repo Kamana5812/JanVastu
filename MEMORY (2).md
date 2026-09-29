@@ -1,3 +1,5 @@
+> Historical copy. Current source: [MEMORY.md](MEMORY.md). Current implementation status: [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md).
+
 # JanVastu — Project Memory
 
 Living context file for whoever (or whichever coding agent) picks this project up next. Update this file at the end of every work session — it is the fastest way back into the project's current state. Read alongside `PRD.md`, `ARCHITECTURE.md`, `DESIGN.md`, `RULES.md`, `PHASES.md`.

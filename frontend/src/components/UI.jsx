@@ -1,18 +1,5 @@
-import { useEffect, useState, useId } from 'react';
-import { useI18n } from '../i18n';
-import { api } from '../api/client';
-export function useResource(path, dependencies = []) {
-  const [data, setData] = useState(null), [error, setError] = useState(''), [loading, setLoading] = useState(true);
-  const [revision, setRevision] = useState(0);
-  useEffect(() => {
-    if (!path) { setLoading(false); return; }
-    let active = true; setLoading(true); setError('');
-    api(path).then(value => { if (active) setData(value); })
-      .catch(e => { if (active) setError(e.message); }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [path, revision, ...dependencies]);
-  return { data, error, loading, reload: () => setRevision(r => r + 1) };
-}
+import {useId} from 'react';
+import {useI18n} from '../i18n/useI18n';
 export function State({ resource, children }) {
   const { t } = useI18n();
   if (resource.loading) return <p role="status">{t('Loading…')}</p>;

@@ -26,6 +26,7 @@ if config.config_file_name is not None:
 from app.db.base import Base
 import app.db.models.users
 import app.db.models.needs
+import app.db.models.projects
 
 target_metadata = Base.metadata
 

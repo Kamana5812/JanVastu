@@ -1,1 +1,4 @@
-Generic single-database configuration.
+Run migrations as the database owner with: python -m alembic upgrade head
+Then run: python -m app.db.provision
+Use janvastu_api credentials for the running application.
+Never run tests against a database containing real user data.

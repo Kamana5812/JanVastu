@@ -6,9 +6,12 @@ from app.db.base import engine, SessionLocal
 from app.db.models.users import User, UserRole, UserStatus, uid
 from app.core.security import get_password_hash, create_token
 
+if not engine.url.database or not engine.url.database.endswith(("_test","_verification")):
+    raise RuntimeError("Tests require a database ending in _test or _verification.")
+
 @pytest.fixture
 def client():
-    with TestClient(app) as client:
+    with TestClient(app, client=(uid(),50000)) as client:
         yield client
 
 @pytest.fixture

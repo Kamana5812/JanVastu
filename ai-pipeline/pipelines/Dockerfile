@@ -1,18 +1,9 @@
-# Use official Python lightweight image
+# Optional compatibility CLI. Build from the repository root:
+# docker build -f ai-pipeline/pipelines/Dockerfile .
 FROM python:3.11-slim
-
-# Set working directory
 WORKDIR /app
-
-# Copy requirements and install
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Expose port
-EXPOSE 8003
-
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]
+COPY backend/app ./app
+COPY ai-pipeline/pipelines/main.py ./pipeline.py
+CMD ["python", "pipeline.py"]

@@ -1,3 +1,5 @@
+> Earlier proposal. The current hackathon specification is [the root PRD](../PRD.md). See [implementation status](../IMPLEMENTATION_SUMMARY.md) for delivered scope and external dependencies.
+
 # JanVastu — Phase-Wise Build Plan (for Antigravity)
 
 **Last Updated**: 2025

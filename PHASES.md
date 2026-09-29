@@ -1,3 +1,5 @@
+> Delivery status, 29 September 2026: phases 0–8 have implemented frontend/backend workflows. Phase 9 automated role, privacy, media, source-integrity and frontend checks are recorded in docs/VERIFICATION.md. Full device/browser coverage and live external-provider validation remain unverified. The current API path mapping in ARCHITECTURE.md supersedes the conceptual route names below. Seeds/imports preserve existing records; no destructive reset is required. User instructions to continue all work authorized proceeding across implementation phases; these notes do not claim every visual exit criterion has passed.
+
 # JanVastu — Delivery Phases
 
 Step-by-step, one phase at a time, with a checkpoint before advancing. Each phase now lists **Frontend** and **Backend** deliverables side by side, since the backend is real (FastAPI + PostgreSQL/PostGIS, see `ARCHITECTURE.md`), not mocked. Exit criteria cover both.

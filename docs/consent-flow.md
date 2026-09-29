@@ -1,26 +1,23 @@
-# JanVastu — Citizen Consent Flow
+# Consent and data handling
 
-**Last Updated**: 2025
+This build stores authenticated account consent and a separate consent record for each request. It is pseudonymous within operational and audit records; it does not claim fully anonymous account registration.
 
-This flow governs how consent is captured before any citizen feedback is recorded, in compliance with the DPDP Act 2023 and the platform's Citizen Sovereignty principle (see `rules.md §1`).
+## Collection
 
-## Flow Steps
+The signup notice explains account and reporting use. Each request requires explicit consent. Volunteers also confirm that they explained the notice and obtained the citizen's agreement; they must omit the citizen's name and phone number.
 
-1. **Citizen initiates contact** (IVR / mobile app / WhatsApp)
-2. **System plays/displays consent notice** in the citizen's local language
-3. **Citizen provides consent** — voice "yes", tap, or OTP confirmation
-4. **Consent recorded** with timestamp, purpose, and language
-5. **Consent ID linked to feedback** — the consent record is *never* linked to citizen identity, only to the feedback item via an opaque `consent_id`
-6. **Citizen** proceeds to submit their feedback (voice, text, photo, or video)
+Text processing redacts common phone and email patterns. This is not a comprehensive personal-data detector. Original media is private and image metadata is stripped at upload.
 
-## Design Notes
+## Public evidence
 
-- The `consent_id` is the *only* link between a feedback item and the fact that consent was given — it must not be traceable back to a phone number, name, or other citizen identifier once anonymization runs at ingestion (see `architecture.md §1.7` and `rules.md` anonymization requirements).
-- Consent notices must be available in all 22+ supported languages before that language's collection channel goes live.
-- Every consent capture event must be immutable and auditable (append-only log), per the platform's Transparency and Accountability principles.
+Only a separately redacted image uploaded and reviewed by an administrator can appear on its linked public project. A record of that action is appended to the audit log. Active account and report consent are checked on every public media request. Originals are never served through the public route. There is no automatic face-blurring model.
 
-## Open Items
+## Withdrawal and erasure
 
-- [ ] Define exact consent notice copy per language (legal + UX sign-off required)
-- [ ] Define consent expiry / re-consent policy, if any
-- [ ] Define erasure request handling in relation to already-anonymized feedback (DPDP right-to-erasure vs. anonymization tension — needs governance decision)
+Users may withdraw account/report consent in their profile. Account withdrawal prevents new reports. Either account or report withdrawal removes public access to the associated evidence; existing operational records remain available for authorized review.
+
+The erasure action requires the current password and explicit confirmation. It removes identifying profile fields, report text, media and report review notes; report coordinates are reduced to a coarse grid, attribution is removed, and the account is suspended with its sessions invalidated. Anonymous operational rows and opaque audit references remain. Administrator accounts cannot self-erase through this route.
+
+Offline drafts remain in the originating browser until synchronized or explicitly removed. Use the queue's Remove action on a shared device. Server erasure does not erase browser-local drafts or independently downloaded copies.
+
+Backup retention and jurisdiction-specific legal review must be defined before production deployment. This implementation is not a legal-compliance certification.

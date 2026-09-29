@@ -1,42 +1,17 @@
-.PHONY: up down build logs sh test lint format backend-install frontend-install frontend-build db-shell
-
-# Docker Compose commands
+.PHONY: up down build logs backend-install frontend-install frontend-build test
 up:
-	docker-compose up -d
-
+	docker compose up --build -d
 down:
-	docker-compose down
-
+	docker compose down
 build:
-	docker-compose build
-
+	docker compose build
 logs:
-	docker-compose logs -f
-
-# Backend commands
+	docker compose logs -f api
 backend-install:
-	cd backend && poetry install
-
-test:
-	cd backend && poetry run pytest
-
-lint:
-	cd backend && poetry run ruff check .
-	cd backend && poetry run mypy app
-
-format:
-	cd backend && poetry run black .
-	cd backend && poetry run ruff check --fix .
-
-# Frontend commands
+	python -m pip install -r backend/requirements.txt
 frontend-install:
-	cd frontend/policymaker-dashboard && npm install
-	cd frontend/public-portal && npm install
-
+	cd frontend && npm ci
 frontend-build:
-	cd frontend/policymaker-dashboard && npm run build
-	cd frontend/public-portal && npm run build
-
-# Database
-db-shell:
-	docker-compose exec postgres psql -U janvastu -d janvastu
+	cd frontend && npm run build
+test:
+	cd backend && python -m pytest -q

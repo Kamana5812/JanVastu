@@ -1,92 +1,75 @@
-# JanVastu Deployment Guide
+# Running JanVastu
 
-This guide walks you through deploying the JanVastu platform using a split-stack architecture: **Vercel** for the high-performance React frontend, and **Render** for the Python/FastAPI backend and PostgreSQL database.
+## Local demonstration
 
----
+Run `docker compose up --build -d`. Frontend: http://localhost:8080. API: http://localhost:8000. MinIO console: http://localhost:9001.
 
-## 1. Frontend Deployment (Vercel)
+The migration service uses the database owner. The API uses `janvastu_api`, which can read and append audit logs but cannot update, delete or truncate them. Audit triggers provide a second layer of protection.
 
-Vercel is the optimal host for our React/Vite application, providing global CDN edge caching out of the box.
+Copy the root `.env.example` to `.env` to override Compose settings. Use URL-safe database passwords or percent-encode them in connection URLs. The shipped defaults are for local demos. No secret belongs in `VITE_*` variables.
 
-### Steps:
-1. Push your code to a GitHub repository.
-2. Log into [Vercel](https://vercel.com/) and click **Add New → Project**.
-3. Import your GitHub repository.
-4. **Configure Project Settings:**
-   - **Framework Preset:** Vite
-   - **Root Directory:** `frontend`
-   - **Build Command:** `npm run build` or `yarn build`
-   - **Output Directory:** `dist`
-5. **Environment Variables:**
-   - `VITE_API_BASE_URL`: Set this to your future backend URL (e.g., `https://janvastu-api.onrender.com`). You can set this as a placeholder for now and update it later once the backend is live.
-6. Click **Deploy**.
+## Run source directly
 
-> **Note:** We have already configured a `vercel.json` file in the `frontend` folder to handle React Router client-side rewrites automatically!
+Install Python 3.11+, Node 24+, PostgreSQL 16/PostGIS and MinIO. Install FFmpeg/ffprobe for audio/video validation.
 
----
+```sh
+python -m venv .venv
+# Activate the environment for your shell.
+pip install -r backend/requirements.txt
+cd backend
+# DATABASE_URL must temporarily use the database owner.
+alembic upgrade head
+# Set RUNTIME_DB_PASSWORD (at least 16 characters).
+python -m app.db.provision
+python -m app.db.seed
+# Change DATABASE_URL to the restricted runtime role.
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
 
-## 2. Backend Deployment (Render)
+Copy `backend/.env.example` to `backend/.env`; configure the database, storage and signing secret. The Python settings read this file regardless of the working directory.
 
-Render is perfect for our FastAPI backend because it natively supports Dockerized deployments and managed PostgreSQL databases.
+In another terminal:
 
-### A. Deploying the PostgreSQL Database
-1. Go to your [Render Dashboard](https://dashboard.render.com/) and click **New → PostgreSQL**.
-2. Name it `janvastu-db`.
-3. Choose the **Free** tier (or Starter if you want persistence beyond 90 days).
-4. Click **Create Database**.
-5. Once created, copy the **Internal Database URL**.
+```sh
+cd frontend
+npm ci
+npm run dev
+```
 
-### B. Enabling PostGIS
-Render's PostgreSQL supports PostGIS natively, but it must be enabled manually.
-1. In your Render DB dashboard, click the **Connect** dropdown and connect via `psql` (or a tool like DBeaver/pgAdmin using the External URL).
-2. Run the following SQL command:
-   ```sql
-   CREATE EXTENSION IF NOT EXISTS postgis;
-   ```
+The frontend proxies `/api` to port 8000. Set `VITE_PROXY_TARGET` for a different local API port. For separate hosted origins, `VITE_API_BASE_URL` is the API origin **without** `/api/v1`.
 
-### C. Deploying the FastAPI Web Service
-1. In the Render Dashboard, click **New → Web Service**.
-2. Connect your GitHub repository.
-3. **Configure the Service:**
-   - **Name:** `janvastu-api`
-   - **Root Directory:** `backend`
-   - **Environment:** `Docker` (Render will automatically detect the `backend/Dockerfile`).
-4. **Environment Variables:**
-   - `DATABASE_URL`: Paste the Internal Database URL from Step A.
-   - `JWT_SECRET`: Generate a random secure string (e.g., `openssl rand -hex 32`).
-   - `MINIO_ENDPOINT`: *(See storage note below)*
-   - `MINIO_ROOT_USER`: *(Your storage access key)*
-   - `MINIO_ROOT_PASSWORD`: *(Your storage secret key)*
-5. Click **Create Web Service**.
+## Tests
 
----
+Create an isolated PostGIS database ending in `_test` or `_verification`. Tests refuse other database names. Run migrations and role provisioning against it, then run:
 
-## 3. Storage Architecture (Production MinIO / S3)
+```sh
+cd backend
+pytest -q
+cd ../frontend
+node scripts/check-i18n.mjs
+npm run lint
+npm run build
+```
 
-In our local Docker Compose environment, we run a local instance of MinIO. For production on Render/Vercel, you need a public cloud object store to handle the image evidence uploads.
+Tests create synthetic rows with unique IDs and never reset an existing database. For a fresh run, create a new isolated test database and migrate it. The GitHub workflow does this automatically with a new service container.
 
-Because our backend uses the standard AWS S3 SDK architecture, you can swap out the local MinIO instance for **any S3-compatible provider** without changing a single line of backend code.
+The seed command is idempotent. It preserves existing records and adds explicit synthetic samples. Do not drop or reset a database containing user data.
 
-### Recommended Free-Tier Storage Providers:
-1. **AWS S3:** Use the AWS Free Tier. Create a bucket, enable public read access, and generate an IAM Access Key.
-2. **Cloudflare R2:** 10GB free forever, zero egress fees. Extremely fast.
+## Configuration and external dependencies
 
-**To configure your backend to use them:**
-Simply update your Render Web Service Environment Variables:
-- `MINIO_ENDPOINT` = `s3.amazonaws.com` (or your R2 endpoint, **without** `https://`)
-- `MINIO_ROOT_USER` = `Your Access Key`
-- `MINIO_ROOT_PASSWORD` = `Your Secret Key`
-- `MINIO_SECURE` = `True`
+- `SECRET_KEY`: random backend signing secret, at least 32 characters for production.
+- `CORS_ORIGINS`: comma-separated exact frontend origins.
+- `MINIO_ENDPOINT`: host and port, without a URL scheme.
+- `MINIO_SECURE`: true for HTTPS storage.
+- `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`: backend-only credentials.
+- `GOOGLE_CLIENT_ID`: public OAuth client identifier; register the exact frontend origin with Google. Google login requires an existing approved account.
+- Nominatim geocoding uses a timeout, cache and throttling. Failed lookups require the user to confirm manually supplied location; they are not presented as verified geocodes.
+- OpenStreetMap map tiles require network access and carry attribution.
 
-The backend `storage.py` logic will automatically generate secure pre-signed URLs pointing directly to your new cloud storage!
+`APP_ENV=demo` permits the clearly labeled fixed OTP. `APP_ENV=production` rejects demo OTP and an unsafe signing secret. A real OTP delivery provider must be implemented before privileged production login is usable.
 
----
+## Hosting
 
-## 4. Final Wire-up
+`render.yaml` is a demo deployment template with corrected frontend paths. Supply an externally provisioned PostGIS database, run migrations and role provisioning with its owner account, and supply the **runtime** connection URL to the API. Supply HTTPS object storage and configure CORS and the frontend API origin. The Docker API listens on port 8000.
 
-Once the Render backend is live, copy its public URL (e.g., `https://janvastu-api.onrender.com`). 
-1. Go back to your **Vercel Project Settings → Environment Variables**.
-2. Update `VITE_API_BASE_URL` to match your Render URL.
-3. Trigger a redeploy on Vercel so the frontend bakes the new URL into the build.
-
-**You are now live! 🚀**
+No external hosting deployment has been performed by creating or pushing this repository.

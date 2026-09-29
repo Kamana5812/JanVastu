@@ -1,44 +1,22 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter,Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.db.base import get_db
-from app.db.models.users import User, UserRole
-from app.core.rbac import require_role
-import random
+from app.db.models.needs import PipelineRun,Need
+from app.core.rbac import require_role,GOVERNANCE
 
-router = APIRouter()
-
+router=APIRouter()
 @router.get("/metrics")
-def get_ai_metrics(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.admin]))
-):
-    # In a real app, this would query MLflow or a model monitoring database.
-    # For the hackathon, we return simulated metrics showing the AI pipeline health.
-    return {
-        "pipeline_status": "Healthy",
-        "models": [
-            {
-                "name": "indic-bert-categorization",
-                "version": "1.2.0",
-                "accuracy": 0.94,
-                "latency_ms": 120,
-                "processed_last_24h": random.randint(300, 500)
-            },
-            {
-                "name": "yolov8-evidence-validation",
-                "version": "0.9.1",
-                "accuracy": 0.88,
-                "latency_ms": 350,
-                "processed_last_24h": random.randint(200, 400)
-            },
-            {
-                "name": "bhashini-translation-node",
-                "version": "2.0",
-                "accuracy": 0.96,
-                "latency_ms": 200,
-                "processed_last_24h": random.randint(400, 600)
-            }
-        ],
-        "overall_processed_reports": 15420,
-        "anomalies_detected": 12
-    }
+@router.get("/pipelines")
+def metrics(user=Depends(require_role(GOVERNANCE)),db:Session=Depends(get_db)):
+    rows=db.query(PipelineRun.stage,PipelineRun.model_version,func.count(PipelineRun.id),func.avg(PipelineRun.latency_ms)).group_by(PipelineRun.stage,PipelineRun.model_version).all()
+    stages=[]
+    for stage,version,count,latency in rows:
+        failures=db.query(PipelineRun).filter_by(stage=stage,model_version=version,success=False).count()
+        stages.append({"stage":stage,"version":version,"processed":count,"failed":failures,"average_latency_ms":round(latency,2),"accuracy":None})
+    def distribution(column):
+        return [{"label":label or "unknown","count":count} for label,count in db.query(column,func.count(PipelineRun.id)).filter(column.isnot(None)).group_by(column)]
+    return {"pipelines":stages,"languages":distribution(PipelineRun.language),"categories":distribution(PipelineRun.category),
+        "total_runs":db.query(PipelineRun).count(),"review_required":db.query(Need).filter(Need.moderation_reason.isnot(None)).count(),
+        "planned":["speech_transcription","translation","image_anonymization"],
+        "scope":"Lightweight language detection, keyword classification and geocoding. Accuracy has not been evaluated."}

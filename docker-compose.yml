@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgis/postgis:16-3.4
@@ -7,62 +5,52 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-janvastu}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-janvastu_pass}
       POSTGRES_DB: ${POSTGRES_DB:-janvastu}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-janvastu} -d ${POSTGRES_DB:-janvastu}"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
+      retries: 20
   minio:
     image: quay.io/minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-
-  api:
-    build:
-      context: ./backend
-    ports:
-      - "8000:8000"
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    volumes: ["minio_data:/data"]
+  migrate:
+    build: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg2://janvastu:janvastu_pass@postgres:5432/janvastu
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-admin}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-password}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-janvastu}:${POSTGRES_PASSWORD:-janvastu_pass}@postgres:5432/${POSTGRES_DB:-janvastu}
+      RUNTIME_DB_PASSWORD: ${RUNTIME_DB_PASSWORD:-local-demo-runtime-password}
+    command: ["sh", "-c", "alembic upgrade head && python -m app.db.provision && python -m app.db.seed"]
     depends_on:
       postgres:
         condition: service_healthy
+  api:
+    build: ./backend
+    ports: ["127.0.0.1:8000:8000"]
+    environment:
+      APP_ENV: ${APP_ENV:-demo}
+      DATABASE_URL: postgresql+psycopg2://janvastu_api:${RUNTIME_DB_PASSWORD:-local-demo-runtime-password}@postgres:5432/${POSTGRES_DB:-janvastu}
+      SECRET_KEY: ${SECRET_KEY:-development-only-change-this-secret-before-deployment}
+      MOCK_OTP_ENABLED: "true"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-admin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-password}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
       minio:
-        condition: service_healthy
-
+        condition: service_started
+  frontend:
+    build: ./frontend
+    ports: ["127.0.0.1:8080:80"]
+    depends_on: [api]
 volumes:
   postgres_data:
-  redis_data:
   minio_data:

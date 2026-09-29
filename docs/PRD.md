@@ -1,3 +1,5 @@
+> Earlier proposal. The current hackathon specification is [the root PRD](../PRD.md). See [implementation status](../IMPLEMENTATION_SUMMARY.md) for delivered scope and external dependencies.
+
 # JanVastu — Product Requirements Document (PRD)
 
 **Version**: 1.0

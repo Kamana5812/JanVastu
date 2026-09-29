@@ -42,3 +42,11 @@ These rules override convenience or a coding agent's default instincts. If a cha
 ## Process
 28. Work in the phased order defined in `PHASES.md`. Confirm completion of a phase's frontend **and** backend deliverables (or get explicit sign-off) before starting the next one — do not jump ahead or batch multiple phases silently.
 29. When a rule in this file and a convenience elsewhere in the codebase conflict, this file wins.
+
+## Implemented sample-source extension
+
+Synthetic seeded records use the explicit **Synthetic Sample** source badge. This badge is distinct from Government Dataset and Verified Source. Field-level badges are persisted with project records; missing values retain Information Not Available.
+
+## User-supplied dataset extension — 29 September 2026
+
+The user explicitly requested importing infrastructure screenshots. Preserve their claims under **User supplied — unverified**, separately from synthetic records. Official references apply only to specific fields and dates. Preserve conflicting observations and missing values. Never infer precise locations, progress, actual expenditure or independent budgets from the screenshots. See docs/DATASETS.md.

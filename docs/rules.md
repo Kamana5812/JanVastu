@@ -1,3 +1,5 @@
+> Earlier proposal. The current hackathon specification is [the root PRD](../PRD.md). See [implementation status](../IMPLEMENTATION_SUMMARY.md) for delivered scope and external dependencies.
+
 # JanVastu — Rules, Standards & Governance
 
 **Version**: 1.0

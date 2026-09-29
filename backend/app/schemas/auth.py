@@ -47,6 +47,11 @@ class ResetRequest(BaseModel):
 class ResetConfirm(OTPVerify):
     password: str = Field(min_length=8, max_length=72)
 
+    @model_validator(mode="after")
+    def password_bytes(self):
+        if len(self.password.encode())>72: raise ValueError("password_too_long")
+        return self
+
 class RefreshRequest(BaseModel):
     refresh_token: str
 

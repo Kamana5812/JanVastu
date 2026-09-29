@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Mic, Square, MapPin, Send } from 'lucide-react';
-import { api } from '../../api/client';
-import { useAuth } from '../../auth/AuthContext';
-import { useI18n } from '../../i18n';
-import { Field, Notice } from '../../components/UI';
-import { saveQueued } from '../volunteer/queue';
-export const categories=['water','sanitation','electricity','health','school','transport','road','housing','other'];
+import {useEffect, useRef, useState} from 'react';
+import {useNavigate, useSearchParams} from 'react-router-dom';
+import {Mic, Square, MapPin, Send} from 'lucide-react';
+import {api} from '../../api/client';
+import {useAuth} from '../../auth/useAuth';
+import {useI18n} from '../../i18n/useI18n';
+import {Field, Notice} from '../../components/UI';
+import {saveQueued} from '../volunteer/queue';
+import {categories} from './categories';
 export default function ReportNeed(){
  const {user}=useAuth(),{t,language}=useI18n(),navigate=useNavigate(),[params]=useSearchParams();
  const [location,setLocation]=useState({latitude:'',longitude:'',address:'',state:user.state||'',district:user.district||''});
@@ -35,7 +35,7 @@ export default function ReportNeed(){
    recorder.current=new MediaRecorder(stream.current,{mimeType:mime});
    const chunks=[];recorder.current.ondataavailable=e=>chunks.push(e.data);
    recorder.current.onstop=()=>{setFiles(f=>[...f,new File(chunks,'voice.webm',{type:mime})]);setRecording(false);stream.current.getTracks().forEach(track=>track.stop());clearTimeout(timer.current);};
-   recorder.current.start();setRecording(true);timer.current=setTimeout(()=>recorder.current?.state==='recording'&&recorder.current.stop(),60000);
+   recorder.current.start();setRecording(true);timer.current=setTimeout(()=>recorder.current?.state==='recording'&&recorder.current.stop(),59000);
   }catch{setError('Microphone access failed. You can type your report.');}
  }
  async function understand(){

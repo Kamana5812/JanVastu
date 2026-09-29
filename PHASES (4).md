@@ -1,3 +1,5 @@
+> Historical copy. Current source: [PHASES.md](PHASES.md). Current implementation status: [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md).
+
 # JanVastu — Delivery Phases
 
 Step-by-step, one phase at a time, with a checkpoint before advancing. Each phase now lists **Frontend** and **Backend** deliverables side by side, since the backend is real (FastAPI + PostgreSQL/PostGIS, see `ARCHITECTURE.md`), not mocked. Exit criteria cover both.

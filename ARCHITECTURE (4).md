@@ -1,3 +1,5 @@
+> Historical copy. Current source: [ARCHITECTURE.md](ARCHITECTURE.md). Current implementation status: [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md).
+
 # JanVastu — Full-Stack Architecture
 
 Companion to `PRD.md`. Defines how the app is built, not what it does. Updated to include a **real backend and real database**, per the "hackathon architecture" defined in the original JanVastu proposal (single PostgreSQL+PostGIS instance, simple REST endpoints) — the fuller Kafka/Debezium/Kubernetes production architecture from that same proposal remains explicitly out of scope for this build (see §11).

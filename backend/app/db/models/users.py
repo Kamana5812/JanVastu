@@ -87,6 +87,7 @@ class AuthChallenge(Base):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     used_at = Column(DateTime(timezone=True))
     attempts = Column(Integer, default=0)
+    payload = Column(JSON)
 
 class RefreshSession(Base):
     __tablename__ = "refresh_sessions"

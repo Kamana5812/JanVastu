@@ -1,0 +1,519 @@
+{
+  "schema_version": 1,
+  "imported_on": "2026-09-29",
+  "sources": {
+    "image-1": {
+      "title": "Supplied screenshot 1",
+      "filename": "codex-clipboard-6a1c91e3-ed41-49d3-b50c-30331fb3c398.png",
+      "sha256": "4cf8cbcb9cd00afb9573a33b57bae7a0fef0e65db353ea5f7da4328b4642c6e2",
+      "kind": "user_supplied_ai_overview",
+      "received_on": "2026-09-29",
+      "source_date": null
+    },
+    "image-2": {
+      "title": "Supplied screenshot 2",
+      "filename": "codex-clipboard-e3e9ed2c-497d-4443-96bc-2acf41849450.png",
+      "sha256": "8e702a56b144c7a2c14a50907e841cd26d4f6b4092b01b4f7eabd65d4fc9f29f",
+      "kind": "user_supplied_ai_overview",
+      "received_on": "2026-09-29",
+      "source_date": null
+    },
+    "image-3": {
+      "title": "Supplied screenshot 3",
+      "filename": "codex-clipboard-b9b6857c-ae73-41f8-9bc8-164a47e50d52.png",
+      "sha256": "c51b70c8dac11504e4c2d570b9117b65fb8957d70806430787083242dffde650",
+      "kind": "user_supplied_ai_overview",
+      "received_on": "2026-09-29",
+      "source_date": null
+    },
+    "pib-ring-road": {
+      "title": "PIB Cabinet approval, 19 August 2025",
+      "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2157887&lang=2&reg=48",
+      "kind": "official_publication",
+      "published_on": "2025-08-19",
+      "checked_on": "2026-09-29"
+    },
+    "parliament-2950": {
+      "title": "Rajya Sabha question 2950, 27 March 2023, Annexure I, page 6",
+      "url": "https://sansad.in/getFile/annex/259/AU2950.pdf?source=pqars",
+      "kind": "official_publication",
+      "published_on": "2023-03-27",
+      "checked_on": "2026-09-29"
+    }
+  },
+  "assets": [
+    {
+      "id": "BBSR-jaydev-flyover",
+      "name": "Jaydev Vihar–Nandankanan Flyover Corridor",
+      "category": "transport",
+      "asset_type": "Bridge / flyover",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Jaydev Vihar–Nandankanan Flyover Corridor",
+            "reported_agency": "Odisha Works Department / DRA Infracon",
+            "reported_completion": "Under Construction (Target 2027–2028)",
+            "reported_duration": "24 Months (Targeted)",
+            "reported_cost": "₹949.35 Crore"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": [
+        "BBSR-jaydev-expressway"
+      ],
+      "shared_budget_group": "jaydev-corridor"
+    },
+    {
+      "id": "BBSR-rajmahal",
+      "name": "Rajmahal Square Flyover",
+      "category": "transport",
+      "asset_type": "Bridge / flyover",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2",
+            "image-3"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Rajmahal Square Flyover",
+            "reported_agency": "Odisha Works Department",
+            "reported_completion": "2012",
+            "reported_duration": "~24 Months",
+            "reported_cost": "₹26 Crore"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-vani-vihar",
+      "name": "Vani Vihar Flyover (NH-16)",
+      "category": "transport",
+      "asset_type": "Bridge / flyover",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Vani Vihar Flyover (NH-16)",
+            "reported_agency": "National Highways Authority of India (NHAI)",
+            "reported_completion": "2015",
+            "reported_duration": "~36 Months",
+            "reported_cost": "Part of NH-16 widening block"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-footbridges",
+      "name": "Baramunda & Palasuni Foot Over Bridges (FOBs)",
+      "category": "transport",
+      "asset_type": "Foot bridges",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Baramunda & Palasuni Foot Over Bridges (FOBs)",
+            "reported_agency": "Ministry of Railways / EPC Mode",
+            "reported_completion": "2024–2025",
+            "reported_duration": "12 Months",
+            "reported_cost": "₹5 Crore"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-bomikhal",
+      "name": "Bomikhal Flyover",
+      "category": "transport",
+      "asset_type": "Bridge / flyover",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Bomikhal Flyover",
+            "reported_agency": "Odisha Bridge & Construction Corp. (OBCC)",
+            "reported_completion": "2018",
+            "reported_duration": "~60 Months (Delayed)",
+            "reported_cost": "₹44 Crore"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-ring-road",
+      "name": "Capital Region Ring Road (Bhubaneswar Bypass)",
+      "category": "road",
+      "asset_type": "Street / highway corridor",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Capital Region Ring Road (Bhubaneswar Bypass)",
+            "reported_agency": "NHAI (Hybrid Annuity Mode)",
+            "reported_completion": "Under Construction (Target 2027)",
+            "reported_duration": "~36 Months",
+            "reported_cost": "₹8,307.74 Crore"
+          }
+        },
+        {
+          "sources": [
+            "pib-ring-road"
+          ],
+          "source_badge": "Government Dataset",
+          "as_of": "2025-08-19",
+          "values": {
+            "approved_capital_cost": "₹8,307.74 crore",
+            "reported_scope": "6-lane, 110.875 km, Rameshwar–Tangi, Hybrid Annuity Mode"
+          },
+          "numeric_cost": {
+            "amount": 8307.74,
+            "unit": "INR crore",
+            "kind": "approved_capital_cost"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-janpath",
+      "name": "Janpath Road (Smart Street Project)",
+      "category": "road",
+      "asset_type": "Street / smart avenue",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Janpath Road (Smart Street Project)",
+            "reported_agency": "Bhubaneswar Smart City Limited (BSCL)",
+            "reported_completion": "2019–2021",
+            "reported_duration": "~30 Months",
+            "reported_cost": "₹80 Crore"
+          }
+        },
+        {
+          "sources": [
+            "image-3"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Janpath Road Smart Street",
+            "reported_agency": "Bhubaneswar Smart City Limited (BSCL)",
+            "reported_completion": "2021",
+            "reported_duration": "~36 months",
+            "reported_cost": "₹80 Crore"
+          }
+        },
+        {
+          "sources": [
+            "parliament-2950"
+          ],
+          "source_badge": "Government Dataset",
+          "as_of": "2023-03-03",
+          "values": {
+            "reported_name": "Smart Janpath",
+            "reported_cost": "₹181.10 crore (total project cost)",
+            "reported_status": "Listed under completed projects as of 3 March 2023"
+          },
+          "numeric_cost": {
+            "amount": 181.1,
+            "unit": "INR crore",
+            "kind": "reported_total_project_cost"
+          }
+        }
+      ],
+      "conflicts": [
+        "reported_completion",
+        "reported_duration",
+        "reported_cost"
+      ],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-jaydev-expressway",
+      "name": "Jaydev Vihar–Nandankanan 8-Lane Expressway",
+      "category": "road",
+      "asset_type": "Street / corridor",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Jaydev Vihar–Nandankanan 8-Lane Expressway",
+            "reported_agency": "State Works Department",
+            "reported_completion": "Under Construction (Target 2027)",
+            "reported_duration": "24 Months",
+            "reported_cost": "Included in flyover budget"
+          }
+        },
+        {
+          "sources": [
+            "image-3"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Jaydev Vihar–Nandankanan Expressway",
+            "reported_agency": "M/s Dineshchandra R. Agrawal Infracon",
+            "reported_completion": "2026/2027 (Ongoing)",
+            "reported_duration": "24 months",
+            "reported_cost": "₹949.35 Crore"
+          }
+        }
+      ],
+      "conflicts": [
+        "reported_agency",
+        "reported_completion",
+        "reported_cost"
+      ],
+      "related_ids": [
+        "BBSR-jaydev-flyover"
+      ],
+      "shared_budget_group": "jaydev-corridor"
+    },
+    {
+      "id": "BBSR-anandabana",
+      "name": "Anandabana Eco-Park (Kalinga Nagar)",
+      "category": "other",
+      "asset_type": "Park",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Anandabana Eco-Park (Kalinga Nagar)",
+            "reported_agency": "BDA / Odisha Forest Department",
+            "reported_completion": "2024",
+            "reported_duration": "~18 Months",
+            "reported_cost": "₹20 Crore"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-ekamra",
+      "name": "Ekamra Kanan Botanical Gardens",
+      "category": "other",
+      "asset_type": "Park",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Ekamra Kanan Botanical Gardens",
+            "reported_agency": "Forests & Environment Department",
+            "reported_completion": "1985 (Ongoing Upgrades)",
+            "reported_duration": "~24 Months",
+            "reported_cost": "Initial baseline civic budget"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-nicco",
+      "name": "BDA City Centre (Nicco Park) Makeover",
+      "category": "other",
+      "asset_type": "Park",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "BDA City Centre (Nicco Park) Makeover",
+            "reported_agency": "Housing & Urban Development Dept.",
+            "reported_completion": "Phase 1 starting 2026",
+            "reported_duration": "3 Phases (Ongoing)",
+            "reported_cost": "₹600+ Crore redevelopment"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-sahid-nagar",
+      "name": "Sahid Nagar Smart Parks (3 Locations)",
+      "category": "other",
+      "asset_type": "Park",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Sahid Nagar Smart Parks (3 Locations)",
+            "reported_agency": "Bhubaneswar Smart City Limited (BSCL)",
+            "reported_completion": "2018",
+            "reported_duration": "6 Months",
+            "reported_cost": "₹1.80 Crore"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-biju-patnaik",
+      "name": "Biju Patnaik Park (Forest Park)",
+      "category": "other",
+      "asset_type": "Park",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Biju Patnaik Park (Forest Park)",
+            "reported_agency": "Bhubaneswar Development Authority (BDA)",
+            "reported_completion": "1999–2000 (Renovated)",
+            "reported_duration": "~12 Months",
+            "reported_cost": "State Capital Fund allotment"
+          }
+        },
+        {
+          "sources": [
+            "image-3"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Biju Patnaik Park (Forest Park)",
+            "reported_agency": "Bhubaneswar Municipal Corporation (BMC) / BDA",
+            "reported_completion": "2003 (Upgraded frequently)",
+            "reported_duration": "Initial ~12 months",
+            "reported_cost": "Varies (Maintenance-driven)"
+          }
+        }
+      ],
+      "conflicts": [
+        "reported_agency",
+        "reported_completion",
+        "reported_cost"
+      ],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-wonderla",
+      "name": "Wonderla Amusement Park (Khurda)",
+      "category": "other",
+      "asset_type": "Park",
+      "claims": [
+        {
+          "sources": [
+            "image-1",
+            "image-2"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Wonderla Amusement Park (Khurda)",
+            "reported_agency": "Wonderla Holidays & Odisha Govt",
+            "reported_completion": "2024–2025",
+            "reported_duration": "24 Months",
+            "reported_cost": "₹115 Crore"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-bose-setu",
+      "name": "Subash Chandra Bose Setu (Barang–Trisulia)",
+      "category": "transport",
+      "asset_type": "Bridge",
+      "claims": [
+        {
+          "sources": [
+            "image-3"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Subash Chandra Bose Setu (Barang–Trisulia)",
+            "reported_agency": "Odisha Works Department",
+            "reported_completion": "2017",
+            "reported_duration": "~36 months",
+            "reported_cost": "₹108 Crore"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    },
+    {
+      "id": "BBSR-madhusudan",
+      "name": "Madhusudan Das Park (Pokhariput)",
+      "category": "other",
+      "asset_type": "Park",
+      "claims": [
+        {
+          "sources": [
+            "image-3"
+          ],
+          "source_badge": "User supplied — unverified",
+          "values": {
+            "reported_name": "Madhusudan Das Park (Pokhariput)",
+            "reported_agency": "Bhubaneswar Development Authority (BDA)",
+            "reported_completion": "2008",
+            "reported_duration": "~14 months",
+            "reported_cost": "~₹5 Crore (Initial phase)"
+          }
+        }
+      ],
+      "conflicts": [],
+      "related_ids": []
+    }
+  ]
+}

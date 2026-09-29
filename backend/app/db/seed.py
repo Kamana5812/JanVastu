@@ -1,298 +1,56 @@
-import os
-import sys
-from datetime import datetime, timedelta
-from sqlalchemy.orm import Session
-
-# Add the backend root directory to the python path so we can import 'app'
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
-
-from app.db.session import engine, SessionLocal
-from app.db.base_class import Base
-from app import models
-
-# Real Odisha district coordinates
-ODISHA_DISTRICTS = [
-    {"name": "Koraput", "level": "district", "lat": 18.8135, "lon": 82.7123},
-    {"name": "Gajapati", "level": "district", "lat": 19.2167, "lon": 84.1333},
-    {"name": "Kandhamal", "level": "district", "lat": 20.4681, "lon": 84.2441},
-    {"name": "Mayurbhanj", "level": "district", "lat": 21.9375, "lon": 86.7333},
-    {"name": "Puri", "level": "district", "lat": 19.8135, "lon": 85.8312},
-    {"name": "Cuttack", "level": "district", "lat": 20.4625, "lon": 85.8828},
-    {"name": "Sambalpur", "level": "district", "lat": 21.4669, "lon": 83.9812},
-    {"name": "Bhubaneswar", "level": "district", "lat": 20.2961, "lon": 85.8245},
-]
-
-
+"""Idempotent synthetic planning/project seed. Never drops or resets tables."""
+from datetime import datetime,timezone,timedelta
+from app.db.base import SessionLocal
+from app.db.models.projects import PlanningContext,Project,ProjectEvent
+from app.db.models.users import now
+from app.db.models.needs import Need,NeedEvent
+from app.db.import_datasets import import_dataset
+CATEGORIES=["water","sanitation","electricity","health","school","transport","road","housing","other"]
 def seed_db():
-    print("Resetting and seeding database with Odisha data...")
-
-    # Drop and recreate all tables
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-
-    db = SessionLocal()
-
-    # ── 1. Seed AdminUnits (Odisha districts) ──
-    admin_units = {}
-    for d in ODISHA_DISTRICTS:
-        au = models.AdminUnit(name=d["name"], level=d["level"], lat=d["lat"], lon=d["lon"])
-        db.add(au)
+    with SessionLocal() as db:
+        areas=[("Puri",19.81,85.83),("Cuttack",20.46,85.88),("Khordha",20.30,85.82)]
+        for i,(district,lat,lon) in enumerate(areas):
+            for j,category in enumerate(CATEGORIES):
+                id=f"sample-context-{i}-{j}"
+                if not db.get(PlanningContext,id):
+                    db.add(PlanningContext(id=id,state="Odisha",district=district,locality="Sample block",
+                        ward_village="Sample ward",category=category,latitude=lat,longitude=lon,
+                        infrastructure_stock=float(i+1),planned_investment=float(j%3),vulnerability=1+0.2*i,
+                        source="synthetic_sample",is_sample=True))
+        for i in range(6):
+            id=f"SAMPLE-{i+1:03d}";district,lat,lon=areas[i%3]
+            if db.get(Project,id):continue
+            p=Project(id=id,name=f"Synthetic community project {i+1}",state="Odisha",district=district,
+                locality="Sample block",ward_village="Sample ward",category=CATEGORIES[i],
+                location=f"SRID=4326;POINT({lon+i*0.001} {lat+i*0.001})",
+                department="Sample public works department",contractor=f"Synthetic contractor {i+1}",
+                sanctioned_cost=1000000.0*(i+1),actual_cost=None if i%2==0 else 900000.0*(i+1),
+                planned_start=datetime(2026,1,1,tzinfo=timezone.utc),
+                planned_completion=datetime(2027,1,1,tzinfo=timezone.utc),
+                actual_start=datetime(2026,2,1,tzinfo=timezone.utc),
+                actual_completion=None if i<5 else datetime(2026,8,1,tzinfo=timezone.utc),
+                responsible_agency="Sample civic agency",responsible_official="Sample engineering office",
+                office_contact=None,department_chain="Sample ward / Sample district office",
+                status="in_progress" if i<5 else "completed",progress=50 if i<5 else 100,is_sample=True,
+                source_badges={k:"synthetic_sample" for k in ["identity","finance","schedule","responsibility"]})
+            db.add(p);db.flush()
+            stages=["sanctioned","tendered","awarded","started","in_progress"]+(["completed"] if i==5 else [])
+            for j,stage in enumerate(stages):
+                db.add(ProjectEvent(project_id=id,stage=stage,occurred_at=datetime(2026,1,1,tzinfo=timezone.utc)+timedelta(days=30*j)))
+        for i,(district,lat,lon) in enumerate(areas):
+            for j,category in enumerate(CATEGORIES):
+                nid=f"sample-need-{i}-{j}"
+                if not db.get(Need,nid):
+                    status=["reported","verified","planned"][j%3]
+                    db.add(Need(id=nid,category=category,description=f"Synthetic demonstration request for {category}. No real citizen submitted this record.",
+                        location=f"SRID=4326;POINT({lon} {lat})",state="Odisha",district=district,locality="Sample block",ward_village="Sample ward",
+                        status=status,is_sample=True,created_at=now()-timedelta(days=j),language="en"))
+                    db.flush();db.add(NeedEvent(need_id=nid,status=status))
+        for project in db.query(Project).filter_by(is_sample=True):
+            project.source_badges={key:"Synthetic Sample" if getattr(project,key) is not None and getattr(project,key)!="" else "Information Not Available" for key in ("name","category","state","district","locality","ward_village","department","contractor","sanctioned_cost","actual_cost","planned_start","planned_completion","actual_start","actual_completion","responsible_agency","responsible_official","office_contact","department_chain","status","progress")}
+            project.source_badges={**project.source_badges,"timeline":"Synthetic Sample"}
+        imported=import_dataset(db)
         db.commit()
-        db.refresh(au)
-        admin_units[d["name"]] = au
-    print(f"  [OK] Seeded {len(admin_units)} admin units")
-
-    # ── 2. Seed Assets + AccountabilityRecords ──
-    projects = [
-        {
-            "name": "New School Building",
-            "type": "Education",
-            "district": "Koraput",
-            "lat": 18.8200, "lon": 82.7200,
-            "source_system": "IIG",
-            "contractor": "Bansal Builders",
-            "sanctioned_cost": 45000000.0,
-            "actual_cost": 42000000.0,
-            "planned_completion": datetime(2025, 12, 31),
-            "actual_completion": None,
-            "official": "District Education Officer",
-            "department": "School & Mass Education",
-        },
-        {
-            "name": "Rural Road Construction",
-            "type": "Road",
-            "district": "Gajapati",
-            "lat": 19.2200, "lon": 84.1400,
-            "source_system": "PMGSY",
-            "contractor": "Shree Infra Pvt. Ltd.",
-            "sanctioned_cost": 24000000.0,
-            "actual_cost": 24000000.0,
-            "planned_completion": datetime(2024, 12, 31),
-            "actual_completion": datetime(2024, 12, 15),
-            "official": "Block Development Officer",
-            "department": "Rural Development",
-        },
-        {
-            "name": "PHC Upgradation",
-            "type": "Health",
-            "district": "Kandhamal",
-            "lat": 20.4700, "lon": 84.2500,
-            "source_system": "IIG",
-            "contractor": "Odisha Buildcon Ltd.",
-            "sanctioned_cost": 38000000.0,
-            "actual_cost": 35000000.0,
-            "planned_completion": datetime(2025, 2, 28),
-            "actual_completion": None,
-            "official": "District Medical Officer",
-            "department": "Health & Family Welfare",
-        },
-        {
-            "name": "Water Supply Project",
-            "type": "Water",
-            "district": "Mayurbhanj",
-            "lat": 21.9400, "lon": 86.7400,
-            "source_system": "IIG",
-            "contractor": "Jai Maa Construction",
-            "sanctioned_cost": 12000000.0,
-            "actual_cost": 14500000.0,
-            "planned_completion": datetime(2025, 5, 31),
-            "actual_completion": None,
-            "official": "Executive Engineer, RWSS",
-            "department": "Water Resources",
-        },
-        {
-            "name": "Street Light Installation",
-            "type": "Electricity",
-            "district": "Puri",
-            "lat": 19.8100, "lon": 85.8300,
-            "source_system": "eSAKSHI",
-            "contractor": "Bright Power Solutions",
-            "sanctioned_cost": 5500000.0,
-            "actual_cost": 5200000.0,
-            "planned_completion": datetime(2024, 9, 30),
-            "actual_completion": datetime(2024, 10, 15),
-            "official": "Municipal Engineer",
-            "department": "Urban Local Body",
-        },
-        {
-            "name": "Community Drain Construction",
-            "type": "Sanitation",
-            "district": "Cuttack",
-            "lat": 20.4600, "lon": 85.8800,
-            "source_system": "PMGSY",
-            "contractor": "Clean City Infra",
-            "sanctioned_cost": 8500000.0,
-            "actual_cost": None,
-            "planned_completion": datetime(2025, 8, 31),
-            "actual_completion": None,
-            "official": "Executive Engineer, PHD",
-            "department": "Housing & Urban Development",
-        },
-        {
-            "name": "Bridge Repair on NH-55",
-            "type": "Road",
-            "district": "Sambalpur",
-            "lat": 21.4700, "lon": 83.9800,
-            "source_system": "IIG",
-            "contractor": "National Highways Builders",
-            "sanctioned_cost": 95000000.0,
-            "actual_cost": 110000000.0,
-            "planned_completion": datetime(2025, 3, 31),
-            "actual_completion": None,
-            "official": "Superintending Engineer, NHAI",
-            "department": "Works Department",
-        },
-    ]
-
-    assets_by_name = {}
-    for proj in projects:
-        asset = models.Asset(
-            name=proj["name"],
-            type=proj["type"],
-            lat=proj["lat"],
-            lon=proj["lon"],
-            admin_unit_id=admin_units[proj["district"]].id,
-            source_system=proj["source_system"],
-        )
-        db.add(asset)
-        db.commit()
-        db.refresh(asset)
-        assets_by_name[proj["name"]] = asset
-
-        record = models.AccountabilityRecord(
-            asset_id=asset.id,
-            contractor_name=proj["contractor"],
-            sanctioned_cost=proj["sanctioned_cost"],
-            actual_cost=proj["actual_cost"],
-            planned_completion_date=proj["planned_completion"],
-            actual_completion_date=proj["actual_completion"],
-            responsible_official=proj["official"],
-            department=proj["department"],
-        )
-        db.add(record)
-
-    db.commit()
-    print(f"  [OK] Seeded {len(projects)} assets + accountability records")
-
-    # ── 3. Seed sample Consent + Feedback ──
-    feedbacks_data = [
-        {
-            "category": "Road",
-            "description": "Pothole on main road near bus stand causing accidents daily. Two wheelers have fallen multiple times.",
-            "language": "en",
-            "district": "Puri",
-            "lat": 19.8100, "lon": 85.8350,
-            "status": "new",
-        },
-        {
-            "category": "Water",
-            "description": "Handpump broken for 3 weeks. No drinking water for 50 families. Please repair urgently.",
-            "language": "en",
-            "district": "Cuttack",
-            "lat": 20.4650, "lon": 85.8850,
-            "status": "new",
-        },
-        {
-            "category": "Sanitation",
-            "description": "Severe water logging on main street after every rain. Drainage is completely blocked.",
-            "language": "en",
-            "district": "Bhubaneswar",
-            "lat": 20.2950, "lon": 85.8200,
-            "status": "triaged",
-        },
-        {
-            "category": "Electricity",
-            "description": "Street light not working on NH road for past 2 months. Very dangerous at night.",
-            "language": "en",
-            "district": "Sambalpur",
-            "lat": 21.4680, "lon": 83.9850,
-            "status": "new",
-        },
-        {
-            "category": "Road",
-            "description": "Bridge railing broken on village bridge. Children walk to school over it. Very unsafe.",
-            "language": "en",
-            "district": "Koraput",
-            "lat": 18.8150, "lon": 82.7100,
-            "status": "in_progress",
-        },
-        {
-            "category": "Health",
-            "description": "PHC has no doctor since last month. Nearest hospital 40 km away. Pregnant women suffering.",
-            "language": "en",
-            "district": "Kandhamal",
-            "lat": 20.4690, "lon": 84.2450,
-            "status": "new",
-        },
-        {
-            "category": "Education",
-            "description": "School roof leaking badly during monsoon. Students sitting in water. No fans working.",
-            "language": "en",
-            "district": "Gajapati",
-            "lat": 19.2180, "lon": 84.1350,
-            "status": "triaged",
-        },
-        {
-            "category": "Water",
-            "description": "Piped water supply project completed but water not reaching last 3 wards. Pipeline leaking.",
-            "language": "en",
-            "district": "Mayurbhanj",
-            "lat": 21.9380, "lon": 86.7350,
-            "status": "new",
-        },
-        {
-            "category": "Road",
-            "description": "Road to weekly market completely washed out in last flood. No vehicle can pass.",
-            "language": "en",
-            "district": "Koraput",
-            "lat": 18.8180, "lon": 82.7150,
-            "status": "new",
-        },
-        {
-            "category": "Sanitation",
-            "description": "Open drain overflowing near school. Children falling sick. Mosquito breeding ground.",
-            "language": "en",
-            "district": "Cuttack",
-            "lat": 20.4610, "lon": 85.8810,
-            "status": "new",
-        },
-    ]
-
-    for i, fb_data in enumerate(feedbacks_data):
-        # Create consent first (as per consent-flow.md)
-        import hashlib, uuid
-        unique_string = f"citizen-feedback-web-{uuid.uuid4()}"
-        consent = models.Consent(
-            purpose="citizen-feedback",
-            language=fb_data["language"],
-            channel="web",
-            timestamp=datetime.utcnow() - timedelta(hours=i * 2),
-            consent_hash=hashlib.sha256(unique_string.encode()).hexdigest(),
-        )
-        db.add(consent)
-        db.commit()
-        db.refresh(consent)
-
-        fb = models.Feedback(
-            consent_id=consent.id,
-            category=fb_data["category"],
-            description_text=fb_data["description"],
-            language=fb_data["language"],
-            lat=fb_data["lat"],
-            lon=fb_data["lon"],
-            admin_unit_id=admin_units.get(fb_data["district"], admin_units["Puri"]).id,
-            status=fb_data["status"],
-            media_urls=[],
-            created_at=datetime.utcnow() - timedelta(hours=i * 2),
-        )
-        db.add(fb)
-
-    db.commit()
-    print(f"  [OK] Seeded {len(feedbacks_data)} consent + feedback records")
-
-    db.close()
-    print("Database seeding completed successfully!")
-
-
-if __name__ == "__main__":
-    seed_db()
+        print(f"Imported {imported} supplied infrastructure records with provenance.")
+        print("Synthetic planning contexts and six sample projects are ready. Existing records preserved.")
+if __name__=="__main__":seed_db()

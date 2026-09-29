@@ -1,3 +1,5 @@
+> Historical copy. Current source: [DESIGN.md](DESIGN.md). Current implementation status: [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md).
+
 # JanVastu — Design System
 
 Companion to `RULES.md` §Brand & Design. This is the single design system for the whole product — no screen invents its own.

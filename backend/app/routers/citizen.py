@@ -20,7 +20,7 @@ reporter=require_role([UserRole.citizen,UserRole.volunteer])
 
 def serialize(db,need,detail=False):
     lon,lat=db.query(func.ST_X(Need.location),func.ST_Y(Need.location)).filter(Need.id==need.id).one()
-    result={k:getattr(need,k) for k in ("id","category","description","affected_people","address","state","district","locality","ward_village","status","created_at","updated_at","language","geocoding_source","project_id")}
+    result={k:getattr(need,k) for k in ("id","is_sample","category","description","affected_people","address","state","district","locality","ward_village","status","created_at","updated_at","language","geocoding_source","project_id")}
     result.update(latitude=lat,longitude=lon)
     if detail:
         result["events"]=[{"status":e.status,"created_at":e.created_at} for e in need.events]
@@ -105,11 +105,18 @@ def detail(id:str,user=Depends(reporter),db:Session=Depends(get_db)):
 @router.post("/needs/{id}/media")
 async def upload(id:str,file:UploadFile=File(...),user=Depends(reporter),db:Session=Depends(get_db)):
     need=own(db,id,user)
+    report_consent=db.get(Consent,need.consent_id)
+    active=db.query(Consent).filter_by(user_id=user.id,purpose="account_and_reporting",status="active").first()
+    if not active or not report_consent or report_consent.status!="active":raise HTTPException(403,"consent_required")
     from app.core.config import settings
     raw=await file.read(settings.MAX_UPLOAD_BYTES+1)
     raw,ctype,suffix=validate_media(raw,file.content_type)
-    if len(need.evidence)>=5:raise HTTPException(400,"media_count_limit")
-    key=f"evidence/{user.id}/{uid()}{suffix}"
+    db.execute(__import__('sqlalchemy').text("SELECT pg_advisory_xact_lock(:key)"),{"key":int(hashlib.sha256(id.encode()).hexdigest()[:15],16)})
+    digest=hashlib.sha256(id.encode()+raw).hexdigest()
+    key=f"evidence/{user.id}/{digest}{suffix}"
+    existing=db.query(Evidence).filter_by(need_id=id,file_url=key).first()
+    if existing:return {"id":existing.id,"content_type":existing.content_type}
+    if db.query(Evidence).filter_by(need_id=id).count()>=5:raise HTTPException(400,"media_count_limit")
     put_media(key,raw,ctype)
     evidence=Evidence(need_id=id,file_url=key,uploaded_by_id=user.id,content_type=ctype,size_bytes=len(raw),anonymized=False)
     db.add(evidence);audit(db,user,"evidence.uploaded",id);db.commit()

@@ -1,0 +1,1 @@
+export const roleHome = role => ({ citizen:'/citizen', volunteer:'/volunteer', district_official:'/dashboard/district', state_planner:'/dashboard/state', national_planner:'/dashboard/national', auditor:'/audit', admin:'/admin' }[role] || '/');

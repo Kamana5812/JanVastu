@@ -1,5 +1,5 @@
-import {useEffect,useRef} from 'react';
-import {useI18n} from '../i18n';
+import {useEffect, useRef} from 'react';
+import {useI18n} from '../i18n/useI18n';
 export function Modal({isOpen,onClose,title,children}){
  const ref=useRef(),{t}=useI18n();
  useEffect(()=>{if(isOpen)ref.current.showModal();else ref.current.close();},[isOpen]);

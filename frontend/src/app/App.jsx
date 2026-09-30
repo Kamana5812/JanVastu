@@ -1,5 +1,6 @@
 import {Link, useNavigate, useLocation} from 'react-router-dom';
-import {ArrowRight, Globe} from 'lucide-react';
+import {ArrowRight, Globe, Menu, X} from 'lucide-react';
+import {useState} from 'react';
 import {AuthProvider} from '../auth/AuthContext';
 import {useAuth} from '../auth/useAuth';
 import {LanguageProvider} from '../i18n';
@@ -14,6 +15,7 @@ function Shell() {
   const {t, language, setLanguage} = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isAppView = location.pathname.startsWith('/citizen') || 
                     location.pathname.startsWith('/volunteer') || 
@@ -29,42 +31,49 @@ function Shell() {
   return (
     <>
       <a className="skip-link" href="#main">{t('Skip to content')}</a>
-      <header className="site-header" style={{ position: 'sticky', top: 0, zIndex: 100, padding: '1rem 4%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link className="brand" to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          <img src="/janvastu-logo.png" alt="JanVastu" style={{ height: '52px', objectFit: 'contain' }} />
-        </Link>
+      <header className="site-header" style={{ position: 'sticky', top: 0, zIndex: 100, padding: '1rem 4%', background: 'white' }}>
+        <div className="site-header-top">
+          <Link className="brand" to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+            <img src="/janvastu-logo.png" alt="JanVastu" style={{ height: '52px', objectFit: 'contain' }} />
+          </Link>
+          <button className="hamburger-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
 
-        <nav aria-label={t('Main navigation')} style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontSize: '0.9rem', fontWeight: 500 }}>
-          <Link to="/" style={{ color: '#4B5563', textDecoration: 'none' }}>{t('How It Works')}</Link>
-          <Link to="/auth/signup/citizen" style={{ color: '#4B5563', textDecoration: 'none' }}>{t('For Citizens')}</Link>
-          <Link to="/auth/access-request" style={{ color: '#4B5563', textDecoration: 'none' }}>{t('For Planners')}</Link>
-          <Link to="/accountability" style={{ color: '#4B5563', textDecoration: 'none' }}>{t('Accountability')}</Link>
-          <Link to="/" style={{ color: '#4B5563', textDecoration: 'none' }}>{t('About')}</Link>
-        </nav>
+        <div className={`site-header-content ${isMenuOpen ? 'open' : ''}`}>
+          <nav aria-label={t('Main navigation')} className="main-nav" style={{ fontSize: '0.9rem', fontWeight: 500 }}>
+            <Link to="/" style={{ color: '#4B5563', textDecoration: 'none' }} onClick={() => setIsMenuOpen(false)}>{t('How It Works')}</Link>
+            <Link to="/auth/signup/citizen" style={{ color: '#4B5563', textDecoration: 'none' }} onClick={() => setIsMenuOpen(false)}>{t('For Citizens')}</Link>
+            <Link to="/auth/access-request" style={{ color: '#4B5563', textDecoration: 'none' }} onClick={() => setIsMenuOpen(false)}>{t('For Planners')}</Link>
+            <Link to="/accountability" style={{ color: '#4B5563', textDecoration: 'none' }} onClick={() => setIsMenuOpen(false)}>{t('Accountability')}</Link>
+            <Link to="/" style={{ color: '#4B5563', textDecoration: 'none' }} onClick={() => setIsMenuOpen(false)}>{t('About')}</Link>
+          </nav>
 
-        <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid #E5E7EB', padding: '0.4rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem' }}>
-            <Globe size={16} color="#6B7280" />
-            <select value={language} onChange={e => setLanguage(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', color: '#111827', fontWeight: 500 }}>
-              <option value="en">English</option>
-              <option value="hi">हिन्दी</option>
-              <option value="or">ଓଡ଼ିଆ</option>
-            </select>
+          <div className="actions">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid #E5E7EB', padding: '0.4rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem' }}>
+              <Globe size={16} color="#6B7280" />
+              <select value={language} onChange={e => setLanguage(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', color: '#111827', fontWeight: 500 }}>
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="or">ଓଡ଼ିଆ</option>
+              </select>
+            </div>
+
+            {user ? (
+              <>
+                <Link to={roleHome(user.role)} className="button secondary" onClick={() => setIsMenuOpen(false)}>{t('Dashboard')}</Link>
+                <button className="button" style={{ background: '#FEE2E2', color: '#B91C1C', border: 'none' }} onClick={async () => { try { await logout(); } finally { navigate('/auth/login'); } }}>{t('Sign out')}</button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth/login" className="button secondary" style={{ background: 'transparent', border: '1px solid #E5E7EB', color: '#111827', padding: '0.5rem 1.25rem', borderRadius: '9999px' }} onClick={() => setIsMenuOpen(false)}>{t('Sign In')}</Link>
+                <Link to="/auth/role" className="button" style={{ background: 'var(--color-primary)', color: 'white', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '9999px', display: 'flex', gap: '0.5rem', alignItems: 'center' }} onClick={() => setIsMenuOpen(false)}>
+                  {t('Report a Need')} <ArrowRight size={16} />
+                </Link>
+              </>
+            )}
           </div>
-
-          {user ? (
-            <>
-              <Link to={roleHome(user.role)} className="button secondary">{t('Dashboard')}</Link>
-              <button className="button" style={{ background: '#FEE2E2', color: '#B91C1C', border: 'none' }} onClick={async () => { try { await logout(); } finally { navigate('/auth/login'); } }}>{t('Sign out')}</button>
-            </>
-          ) : (
-            <>
-              <Link to="/auth/login" className="button secondary" style={{ background: 'transparent', border: '1px solid #E5E7EB', color: '#111827', padding: '0.5rem 1.25rem', borderRadius: '9999px' }}>{t('Sign In')}</Link>
-              <Link to="/auth/role" className="button" style={{ background: 'var(--color-primary)', color: 'white', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '9999px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                {t('Report a Need')} <ArrowRight size={16} />
-              </Link>
-            </>
-          )}
         </div>
       </header>
 

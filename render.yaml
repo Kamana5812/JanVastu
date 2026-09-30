@@ -6,8 +6,7 @@ services:
     runtime: docker
     plan: free
     dockerContext: backend
-    dockerfilePath: backend/Dockerfile
-    dockerCommand: python /app/app/hosted_start.py
+    dockerfilePath: Dockerfile
     healthCheckPath: /api/v1/health
     envVars:
       - key: PYTHONPATH

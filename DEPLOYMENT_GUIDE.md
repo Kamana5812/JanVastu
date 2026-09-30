@@ -70,6 +70,27 @@ The seed command is idempotent. It preserves existing records and adds explicit 
 
 ## Hosting
 
-`render.yaml` is a demo deployment template with corrected frontend paths. Supply an externally provisioned PostGIS database, run migrations and role provisioning with its owner account, and supply the **runtime** connection URL to the API. Supply HTTPS object storage and configure CORS and the frontend API origin. The Docker API listens on port 8000.
+### Vercel frontend
 
-No external hosting deployment has been performed by creating or pushing this repository.
+Import the repository with root directory `frontend`, framework Vite, build command `npm run build`, and output directory `dist`. Set `VITE_API_BASE_URL` to the Render service origin and redeploy after changing it. The SPA rewrite is included in `frontend/vercel.json`.
+
+The frontend is published at https://janvastu.vercel.app. Backend connection and live verification are still in progress.
+
+### Render API with Neon database and private storage
+
+`render.yaml` provisions only the free Docker API. In the Render form use root directory `backend`, Dockerfile `./Dockerfile`, build context `.`, command `python -m app.hosted_start`, and health check `/api/v1/health`.
+
+Create a dedicated Neon PostgreSQL database with PostGIS support and a private `janvastu-media` bucket. Set these backend environment variables:
+
+- `JANVASTU_OWNER_DATABASE_URL`: direct (non-pooled) database owner connection, preserving the SSL parameters.
+- `SECRET_KEY`: a generated random signing secret, at least 32 characters.
+- `APP_ENV=demo`, `MOCK_OTP_ENABLED=true` for the labeled hackathon demo.
+- `CORS_ORIGINS` and `FRONTEND_URL`: `https://janvastu.vercel.app`.
+- `MINIO_ENDPOINT`: the host from Neon's `AWS_ENDPOINT_URL_S3`, without `https://`.
+- `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY`: Neon's storage credentials.
+- `MINIO_REGION`: Neon's `AWS_REGION` (this project uses `us-east-2`).
+- `MINIO_BUCKET=janvastu-media`, `MINIO_SECURE=true`.
+
+On startup, `app.hosted_start` migrates the database, provisions the restricted `janvastu_api` role, and imports idempotent demo/dataset seeds. It then replaces itself with the API process, using the restricted connection and removing the owner connection from that process's environment. Render retains the owner setting for future migrations; keep dashboard access limited. The runtime password is derived from `SECRET_KEY`; rotating the signing secret also rotates that database password on the next startup.
+
+Never put database or storage credentials in Git or Vercel frontend variables. Keep the bucket private; evidence access is authorized by the API. Free hosting has usage limits and Render can sleep while idle. No paid database or AWS resources are required for this setup.

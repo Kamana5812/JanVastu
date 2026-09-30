@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     MINIO_SECRET_KEY: str = ''
     MINIO_BUCKET: str = 'janvastu-media'
     MINIO_SECURE: bool = False
+    MINIO_REGION: str = ''
     NOMINATIM_BASE_URL: str = 'https://nominatim.openstreetmap.org'
     NOMINATIM_USER_AGENT: str = 'JanVastu/1.0 (local civic prototype)'
     MOCK_OTP_ENABLED: bool = True

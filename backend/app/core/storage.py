@@ -16,7 +16,9 @@ def get_minio_client():
     if not settings.MINIO_ACCESS_KEY or not settings.MINIO_SECRET_KEY:
         raise HTTPException(503,"storage_unavailable")
     return Minio(settings.MINIO_ENDPOINT,access_key=settings.MINIO_ACCESS_KEY,
-                 secret_key=settings.MINIO_SECRET_KEY,secure=settings.MINIO_SECURE,http_client=PoolManager(timeout=Timeout(connect=3,read=10),retries=1))
+                 secret_key=settings.MINIO_SECRET_KEY,secure=settings.MINIO_SECURE,
+                 region=settings.MINIO_REGION or None,
+                 http_client=PoolManager(timeout=Timeout(connect=3,read=10),retries=1))
 
 def validate_media(raw,content_type):
     if not raw or len(raw)>settings.MAX_UPLOAD_BYTES:
